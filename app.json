@@ -1,0 +1,67 @@
+{
+  "expo": {
+    "name": "FoodRxCheck",
+    "slug": "foodrxncheck",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./src/assets/images/drugSpecs.png",
+    "scheme": "foodrugcheck",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./src/assets/images/adaptive-icon.png",
+        "monochromeImage": "./src/assets/images/adaptive-icon.png",
+        "backgroundColor": "#ffffff"
+      },
+      "package": "com.cyanide1234.foodrxncheck",
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "data": [
+            {
+              "scheme": "foodrxncheck",
+              "host": "CaptureReset"
+            }
+          ],
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ]
+        }
+      ]
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "single",
+      "favicon": "./src/assets/images/drugSpecs.png"
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./src/assets/images/drugSpecs.png",
+          "imageWidth": 200,
+          "resizeMode": "contain",
+          "backgroundColor": "#ffffff"
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true
+    },
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "d72de6d8-11c6-4aa0-9551-8d589e9f6f93"
+      }
+    },
+    "owner": "cyanide1234"
+  }
+}
