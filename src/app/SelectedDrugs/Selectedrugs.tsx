@@ -60,6 +60,7 @@ const SelectedDrugs = () => {
   };
 
   if (isLoading) {
+    
     return <ActivityIndicator style={styles.loading} size="large" color="#0a7ea4" />;
   }
 
@@ -74,6 +75,7 @@ const SelectedDrugs = () => {
       />
 
       <ScrollView contentContainerStyle={styles.scrollContainer}>
+        
         {selectedDrugs.length === 0 ? (
           <Text style={styles.emptyMessage}>No drugs selected.</Text>
         ) : (
@@ -83,7 +85,7 @@ const SelectedDrugs = () => {
 
             return (
               <View key={drug.drug_id} style={styles.card}>
-                <View>
+                <View style={{ width: '85%' }}>
                 <Text style={styles.drugName}>{drug.drug_name}</Text>
 
                 <Text style={styles.interactionSummary}>
@@ -115,7 +117,7 @@ const SelectedDrugs = () => {
                 </View>
                 </View>
 
-                <View>
+                <View style={{ width: '10%' }}>
                 <TouchableOpacity onPress={() => onRemoveDrug(drug.drug_id)}>
                     <FontAwesome name="minus-circle" size={24} color="gray" />
                   </TouchableOpacity>
