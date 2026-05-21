@@ -36,7 +36,9 @@ export const fetchDrugsByFood = async (
   food: string,
   isHcp: boolean,
 ): Promise<Drug[]> => {
-  if (!food.trim()) return [];
+  if (!food.trim()) {
+    return [];
+  }
 
   const interactionsTable = isHcp ? 'interactions' : 'patient_interactions';
   const drugsTable = isHcp ? 'drugs' : 'patient_drugs';
@@ -52,7 +54,9 @@ export const fetchDrugsByFood = async (
   }
 
   const drugIds = interactions.map((interaction) => interaction.drug_id);
-  if (drugIds.length === 0) return [];
+  if (drugIds.length === 0) {
+    return [];
+  }
 
   const { data: drugs, error: drugsError } = await supabase
     .from(drugsTable)

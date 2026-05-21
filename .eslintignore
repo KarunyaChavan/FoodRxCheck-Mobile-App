@@ -1,6 +1,0 @@
-.expo/
-coverage/
-dist/
-node_modules/
-web-build/
-expo-env.d.ts

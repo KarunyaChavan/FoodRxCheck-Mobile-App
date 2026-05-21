@@ -77,7 +77,7 @@ const SignUpScreen = () => {
         data: {
           full_name: fullName,
           role: 'hcp',
-          qualification: qualification,
+          qualification,
         },
       },
     });

@@ -48,7 +48,9 @@ export default function AuthProvider({ children }: PropsWithChildren) {
 
   const loadUserProfile = useCallback(
     async (userId: string, session: Session | null = authState.session) => {
-      if (authState.resetPending) return;
+      if (authState.resetPending) {
+        return;
+      }
 
       try {
         const data = await fetchProfile(userId);
@@ -70,7 +72,9 @@ export default function AuthProvider({ children }: PropsWithChildren) {
   );
 
   useEffect(() => {
-    if (authState.resetPending) return;
+    if (authState.resetPending) {
+      return;
+    }
 
     const fetchSession = async () => {
       const {
