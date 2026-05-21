@@ -1,5 +1,5 @@
 /**
- * @file Provides the drug suggestion form submitted to Supabase.
+ * @file Provides the drug suggestion form submitted to Supabase using decoupled api layer.
  */
 
 import { FontAwesome } from '@expo/vector-icons';
@@ -15,8 +15,9 @@ import {
   FlatList,
 } from 'react-native';
 
-import supabase from '../../lib/supabase';
+import Colors from '../../constant/Colors';
 import { useAuth } from '../../provider/AuthProvider';
+import { submitSuggestion } from '../../services/api/suggestions';
 
 /**
  * Displays the drug suggestion form and submits it to Supabase.
@@ -30,22 +31,25 @@ const Suggest = () => {
   const queryOptions = ['Drug Missing', 'Required More Info', 'Other'];
 
   const handleSubmit = async () => {
-    if (description === '') {
+    if (description.trim() === '') {
       Alert.alert('Error', 'Please fill the description');
       return;
     }
 
-    const { error } = await supabase
-      .from('suggestions')
-      .insert([{ name: user?.full_name, role: user?.role, query, description }]);
+    try {
+      await submitSuggestion({
+        name: user?.full_name || null,
+        role: user?.role || null,
+        query,
+        description,
+      });
 
-    if (error) {
-      console.error(error);
-      Alert.alert('Error', 'There was an error submitting your suggestion');
-    } else {
       Alert.alert('Success', 'Your suggestion has been submitted');
       setQuery('Drug Missing');
       setDescription('');
+    } catch (error: any) {
+      console.error(error);
+      Alert.alert('Error', error.message || 'There was an error submitting your suggestion');
     }
   };
 
@@ -56,7 +60,12 @@ const Suggest = () => {
       <Text style={styles.label}>Query</Text>
       <TouchableOpacity style={styles.dropdownButton} onPress={() => setModalVisible(true)}>
         <Text style={styles.dropdownText}>{query}</Text>
-        <FontAwesome name="chevron-right" size={15} color="black" style={{ transform: '90deg' }} />
+        <FontAwesome
+          name="chevron-right"
+          size={15}
+          color={Colors.light.text}
+          style={{ transform: [{ rotate: '90deg' }] }}
+        />
       </TouchableOpacity>
 
       {/* Modal for selecting query */}
@@ -118,18 +127,20 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 20,
     textAlign: 'center',
+    color: Colors.light.text,
   },
   label: {
     marginBottom: 8,
     fontWeight: 'bold',
+    color: Colors.light.text,
   },
   dropdownButton: {
     padding: 12,
     marginRight: 5,
     borderWidth: 1,
-    borderColor: '#ccc',
+    borderColor: Colors.light.border,
     borderRadius: 5,
-    backgroundColor: '#fff',
+    backgroundColor: Colors.light.cardBackground,
     marginBottom: 10,
     flexDirection: 'row',
     alignItems: 'center',
@@ -137,20 +148,21 @@ const styles = StyleSheet.create({
   },
   dropdownText: {
     fontSize: 16,
-    color: '#333',
+    color: Colors.light.text,
   },
   textArea: {
     height: 100,
-    borderColor: '#ccc',
+    borderColor: Colors.light.border,
     borderWidth: 1,
     marginBottom: 10,
     paddingHorizontal: 10,
     borderRadius: 5,
-    backgroundColor: '#fff',
+    backgroundColor: Colors.light.cardBackground,
     textAlignVertical: 'top',
+    color: Colors.light.text,
   },
   button: {
-    backgroundColor: '#0a7ea4',
+    backgroundColor: Colors.light.primary,
     paddingVertical: 15,
     borderRadius: 100,
     alignItems: 'center',
@@ -169,7 +181,7 @@ const styles = StyleSheet.create({
   },
   modalContent: {
     width: '80%',
-    backgroundColor: 'white',
+    backgroundColor: Colors.light.cardBackground,
     padding: 20,
     borderRadius: 10,
     elevation: 5,
@@ -179,25 +191,16 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 10,
     textAlign: 'center',
+    color: Colors.light.text,
   },
   option: {
     padding: 15,
     borderBottomWidth: 1,
-    borderBottomColor: '#ccc',
+    borderBottomColor: Colors.light.border,
   },
   optionText: {
     fontSize: 16,
-  },
-  closeButton: {
-    marginTop: 10,
-    padding: 10,
-    backgroundColor: '#d9534f',
-    borderRadius: 5,
-    alignItems: 'center',
-  },
-  closeButtonText: {
-    color: '#fff',
-    fontSize: 16,
+    color: Colors.light.text,
   },
 });
 
