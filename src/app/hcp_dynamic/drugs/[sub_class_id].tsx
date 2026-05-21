@@ -11,6 +11,7 @@ import SearchBar from '../../../components/Searchbar';
 import ErrorView from '../../../components/ui/ErrorView';
 import LoadingState from '../../../components/ui/LoadingState';
 import Colors from '../../../constant/Colors';
+import { queryKeys } from '../../../constant/QueryKeys';
 import { useAuth } from '../../../provider/AuthProvider';
 import { fetchSubClassDrugs } from '../../../services/api/drugs';
 import { Drug } from '../../../types/database.types';
@@ -33,7 +34,7 @@ const DrugList = () => {
     error,
     refetch,
   } = useQuery<Drug[]>({
-    queryKey: ['drugs', sub_class_id],
+    queryKey: queryKeys.drugs.bySubClass(sub_class_id!),
     queryFn: () => fetchSubClassDrugs(sub_class_id!),
     enabled: Boolean(session && sub_class_id),
   });

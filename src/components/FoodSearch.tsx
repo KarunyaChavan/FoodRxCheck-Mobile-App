@@ -19,14 +19,15 @@ import {
 import ErrorView from '../components/ui/ErrorView';
 import LoadingState from '../components/ui/LoadingState';
 import Colors from '../constant/Colors';
+import { queryKeys } from '../constant/QueryKeys';
 import { fetchDrugsByFood } from '../services/api/interactions';
 import { Drug } from '../types/database.types';
+
 
 interface FoodSearchProps {
   placeholder: string;
   routePath: string;
-  interactionsTable: string;
-  drugsTable: string;
+  isHcp: boolean;
 }
 
 /**
@@ -35,8 +36,7 @@ interface FoodSearchProps {
 const FoodSearchComponent: React.FC<FoodSearchProps> = ({
   placeholder,
   routePath,
-  interactionsTable,
-  drugsTable,
+  isHcp,
 }) => {
   const router = useRouter();
   const [searchTerm, setSearchTerm] = useState('');
@@ -47,8 +47,8 @@ const FoodSearchComponent: React.FC<FoodSearchProps> = ({
     error,
     refetch,
   } = useQuery<Drug[]>({
-    queryKey: [`searchDrugs-${interactionsTable}-${drugsTable}`, searchTerm],
-    queryFn: () => fetchDrugsByFood(searchTerm, interactionsTable, drugsTable),
+    queryKey: queryKeys.drugs.search(searchTerm, isHcp),
+    queryFn: () => fetchDrugsByFood(searchTerm, isHcp),
     enabled: false, // Only fetch on button press
   });
 

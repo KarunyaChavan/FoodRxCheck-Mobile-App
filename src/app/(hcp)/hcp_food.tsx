@@ -12,8 +12,7 @@ const FoodSearchScreen = () => {
     <FoodSearchComponent
       placeholder="Search food interactions..."
       routePath="/hcp_dynamic/drug-details/[id]"
-      interactionsTable="interactions"
-      drugsTable="drugs"
+      isHcp={true}
     />
   );
 };

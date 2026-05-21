@@ -11,6 +11,7 @@ import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-nati
 import ErrorView from '../../components/ui/ErrorView';
 import LoadingState from '../../components/ui/LoadingState';
 import Colors from '../../constant/Colors';
+import { queryKeys } from '../../constant/QueryKeys';
 import { useAuth } from '../../provider/AuthProvider';
 import { useDrugs } from '../../provider/DrugsProvider';
 import { fetchDrugInteractions } from '../../services/api/interactions';
@@ -56,7 +57,7 @@ const SelectedDrugs = () => {
     error,
     refetch,
   } = useQuery({
-    queryKey: ['selectedinteractions', keyUser],
+    queryKey: queryKeys.interactions.selected(keyUser),
     queryFn: () => getInteractionsMap(selectedDrugs, isHcp),
     enabled: selectedDrugs.length > 0,
   });

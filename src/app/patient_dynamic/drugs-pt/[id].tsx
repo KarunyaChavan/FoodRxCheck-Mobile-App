@@ -21,6 +21,7 @@ import ZoomableImage from '@/components/Image-view';
 import ErrorView from '../../../components/ui/ErrorView';
 import LoadingState from '../../../components/ui/LoadingState';
 import Colors from '../../../constant/Colors';
+import { queryKeys } from '../../../constant/QueryKeys';
 import { fetchGeneralInstructionDetail } from '../../../services/api/drugs';
 import { GeneralInstruction } from '../../../types/database.types';
 
@@ -38,7 +39,7 @@ const DrugDetails: React.FC = () => {
     error,
     refetch,
   } = useQuery<GeneralInstruction>({
-    queryKey: ['instructions', id],
+    queryKey: queryKeys.instructions.byDrug(id!),
     queryFn: () => fetchGeneralInstructionDetail(id!),
     enabled: Boolean(id),
   });

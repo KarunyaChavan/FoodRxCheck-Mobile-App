@@ -11,6 +11,7 @@ import SearchBar from '../../../components/Searchbar';
 import ErrorView from '../../../components/ui/ErrorView';
 import LoadingState from '../../../components/ui/LoadingState';
 import Colors from '../../../constant/Colors';
+import { queryKeys } from '../../../constant/QueryKeys';
 import { useAuth } from '../../../provider/AuthProvider';
 import { fetchSubClasses, fetchClassDrugs } from '../../../services/api/drugs';
 import { SubClass, Drug } from '../../../types/database.types';
@@ -30,7 +31,7 @@ const SubClassList = () => {
     error: subClassesError,
     refetch: refetchSubClasses,
   } = useQuery<SubClass[]>({
-    queryKey: ['sub_classes', class_id],
+    queryKey: queryKeys.classes.subClasses(class_id),
     queryFn: () => fetchSubClasses(class_id!),
     enabled: Boolean(session && class_id),
   });
@@ -41,7 +42,7 @@ const SubClassList = () => {
     error: drugsError,
     refetch: refetchDrugs,
   } = useQuery<Drug[]>({
-    queryKey: ['drugs', class_id],
+    queryKey: queryKeys.drugs.byClass(class_id),
     queryFn: () => fetchClassDrugs(class_id!),
     enabled: Boolean(session && class_id && subClasses?.length === 0),
   });

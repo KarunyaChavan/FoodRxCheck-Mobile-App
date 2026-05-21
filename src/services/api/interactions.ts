@@ -30,15 +30,16 @@ export const fetchDrugInteractions = async (
  * Executes a two-step query to find drugs that interact with a specific food query.
  * Matches keywords using full text or ilike, then resolves drug names.
  * @param food Target food name (e.g. 'Grapefruit', 'Tea').
- * @param interactionsTable Name of the interaction table to search.
- * @param drugsTable Name of the drug catalog table to resolve names.
+ * @param isHcp Boolean flag indicating if clinical HCP details are requested.
  */
 export const fetchDrugsByFood = async (
   food: string,
-  interactionsTable: string,
-  drugsTable: string,
+  isHcp: boolean,
 ): Promise<Drug[]> => {
   if (!food.trim()) return [];
+
+  const interactionsTable = isHcp ? 'interactions' : 'patient_interactions';
+  const drugsTable = isHcp ? 'drugs' : 'patient_drugs';
 
   const { data: interactions, error: interactionsError } = await supabase
     .from(interactionsTable)

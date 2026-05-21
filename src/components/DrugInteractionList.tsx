@@ -11,6 +11,7 @@ import { View, Text, FlatList, StyleSheet, TouchableOpacity, Platform } from 're
 import ErrorView from '../components/ui/ErrorView';
 import LoadingState from '../components/ui/LoadingState';
 import Colors from '../constant/Colors';
+import { queryKeys } from '../constant/QueryKeys';
 import { fetchDrugInteractions } from '../services/api/interactions';
 import { Interaction } from '../types/database.types';
 import parseAndRenderText from '../utils/parsehttp';
@@ -32,7 +33,7 @@ const DrugInteractionList: React.FC<DrugInteractionListProps> = ({ tableName }) 
     error,
     refetch,
   } = useQuery<Interaction[]>({
-    queryKey: [tableName, id],
+    queryKey: queryKeys.interactions.byDrug(id!, tableName === 'interactions'),
     queryFn: () => fetchDrugInteractions(id!, tableName === 'interactions'),
     enabled: Boolean(id),
   });

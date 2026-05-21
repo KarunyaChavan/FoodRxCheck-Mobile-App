@@ -4,6 +4,7 @@
 
 import { useInfiniteQuery } from '@tanstack/react-query';
 
+import { queryKeys } from '../../constant/QueryKeys';
 import { fetchPaginatedPatientDrugs } from '../../services/api/drugs';
 
 const LIMIT = 50;
@@ -21,7 +22,7 @@ const fetchDrugs = async ({ pageParam = 0 }) => {
  */
 export const usePaginatedPatient = () => {
   return useInfiniteQuery({
-    queryKey: ['patient_drugs'],
+    queryKey: queryKeys.drugs.patientPaginated(0, LIMIT),
     queryFn: fetchDrugs,
     initialPageParam: 0,
     getNextPageParam: (lastPage) => lastPage.nextOffset,

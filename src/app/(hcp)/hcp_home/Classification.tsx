@@ -10,6 +10,7 @@ import { View, FlatList, Text, TouchableOpacity, StyleSheet } from 'react-native
 import ErrorView from '../../../components/ui/ErrorView';
 import LoadingState from '../../../components/ui/LoadingState';
 import Colors from '../../../constant/Colors';
+import { queryKeys } from '../../../constant/QueryKeys';
 import { fetchClasses } from '../../../services/api/drugs';
 import { DrugClass } from '../../../types/database.types';
 
@@ -28,7 +29,7 @@ const ClassList: React.FC<ClassListProps> = ({ filter }) => {
     error,
     refetch,
   } = useQuery<DrugClass[]>({
-    queryKey: ['classes'],
+    queryKey: queryKeys.classes.all,
     queryFn: fetchClasses,
   });
 
