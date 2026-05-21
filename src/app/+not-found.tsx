@@ -1,9 +1,14 @@
-import React from 'react';
+/**
+ * @file Provides the fallback screen for unmatched Expo Router paths.
+ */
+
 import { Link, Stack } from 'expo-router';
-import { StyleSheet,Text,View} from 'react-native';
+import React from 'react';
+import { StyleSheet, Text, View } from 'react-native';
 
-
-
+/**
+ * Renders a simple fallback for routes that do not exist.
+ */
 export default function NotFoundScreen() {
   return (
     <>

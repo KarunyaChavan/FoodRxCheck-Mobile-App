@@ -1,13 +1,28 @@
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
-import React from 'react';
-import { useDrugs } from '../../provider/DrugsProvider';
-import { FontAwesome } from '@expo/vector-icons';
-import { useRouter, Stack } from 'expo-router';
-import { useAuth } from '../../provider/AuthProvider';
-import { useQuery } from '@tanstack/react-query';
-import supabase from '../../lib/supabase';
+/**
+ * @file Displays selected drugs and compares their known interaction warnings.
+ */
 
-const fetchInteractions = async (selectedDrugs: { drug_id: number; drug_name: string; }[], isHcp: boolean) => {
+import { FontAwesome } from '@expo/vector-icons';
+import { useQuery } from '@tanstack/react-query';
+import { useRouter, Stack } from 'expo-router';
+import React from 'react';
+import {
+  View,
+  Text,
+  ScrollView,
+  TouchableOpacity,
+  StyleSheet,
+  ActivityIndicator,
+} from 'react-native';
+
+import supabase from '../../lib/supabase';
+import { useAuth } from '../../provider/AuthProvider';
+import { useDrugs } from '../../provider/DrugsProvider';
+
+const fetchInteractions = async (
+  selectedDrugs: { drug_id: number; drug_name: string }[],
+  isHcp: boolean,
+) => {
   const interactionsMap: { [key: number]: { count: number; interactions: string[] } } = {};
 
   for (const drug of selectedDrugs) {
@@ -31,27 +46,34 @@ const fetchInteractions = async (selectedDrugs: { drug_id: number; drug_name: st
   return interactionsMap;
 };
 
+/**
+ * Lists selected drugs and loads possible interactions between them.
+ */
 const SelectedDrugs = () => {
   const { selectedDrugs, onRemoveDrug } = useDrugs();
   const router = useRouter();
-  const { isHcp,user } = useAuth();
+  const { isHcp, user } = useAuth();
   const keyUser = user?.id || 'patient';
   const { data: interactionData, isLoading } = useQuery({
-    queryKey: ['selectedinteractions',keyUser],
+    queryKey: ['selectedinteractions', keyUser],
     queryFn: () => fetchInteractions(selectedDrugs, isHcp),
-    enabled: selectedDrugs.length > 0, 
+    enabled: selectedDrugs.length > 0,
   });
 
   // Clear all selected drugs
+  /**
+   * Removes every selected drug from local comparison state.
+   */
   const clearAllDrugs = () => {
     selectedDrugs.forEach((drug) => onRemoveDrug(drug.drug_id));
   };
 
   // Navigate to DrugInteractionList page
-  const handleNavigate = (drug: { drug_id: any; drug_name: any; }) => {
-    const path = isHcp
-      ? '/hcp_dynamic/drug-details/[id]'
-      : '/patient_dynamic/int-drugs-pt/[id]';
+  /**
+   * Navigates to a selected drug's patient detail screen.
+   */
+  const handleNavigate = (drug: { drug_id: any; drug_name: any }) => {
+    const path = isHcp ? '/hcp_dynamic/drug-details/[id]' : '/patient_dynamic/int-drugs-pt/[id]';
 
     router.push({
       pathname: path,
@@ -60,7 +82,6 @@ const SelectedDrugs = () => {
   };
 
   if (isLoading) {
-    
     return <ActivityIndicator style={styles.loading} size="large" color="#0a7ea4" />;
   }
 
@@ -75,7 +96,6 @@ const SelectedDrugs = () => {
       />
 
       <ScrollView contentContainerStyle={styles.scrollContainer}>
-        
         {selectedDrugs.length === 0 ? (
           <Text style={styles.emptyMessage}>No drugs selected.</Text>
         ) : (
@@ -86,45 +106,55 @@ const SelectedDrugs = () => {
             return (
               <View key={drug.drug_id} style={styles.card}>
                 <View style={{ width: '85%' }}>
-                <Text style={styles.drugName}>{drug.drug_name}</Text>
+                  <Text style={styles.drugName}>{drug.drug_name}</Text>
 
-                <Text style={styles.interactionSummary}>
+                  <Text style={styles.interactionSummary}>
+                    {interactionCount > 0
+                      ? `${interactionCount} food interaction(s) found`
+                      : 'No known food interactions'}
+                  </Text>
+
                   {interactionCount > 0
-                    ? `${interactionCount} food interaction(s) found`
-                    : 'No known food interactions' }
-                </Text>
+                    ? interactions.map(
+                        (
+                          interaction:
+                            | string
+                            | number
+                            | boolean
+                            | React.ReactElement<any, string | React.JSXElementConstructor<any>>
+                            | Iterable<React.ReactNode>
+                            | React.ReactPortal
+                            | null
+                            | undefined,
+                          index: React.Key | null | undefined,
+                        ) => (
+                          <Text key={index} style={styles.interactionText}>
+                            • {interaction}
+                          </Text>
+                        ),
+                      )
+                    : null}
 
-                {interactionCount > 0 ? (
-                  interactions.map((interaction: string | number | boolean | React.ReactElement<any, string | React.JSXElementConstructor<any>> | Iterable<React.ReactNode> | React.ReactPortal | null | undefined, index: React.Key | null | undefined) => (
-                    <Text key={index} style={styles.interactionText}>
-                      • {interaction}
-                    </Text>
-                  ))
-                ) : (
-                 null
-                )}
-
-                <View style={styles.buttonContainer}>
-                  {interactionCount > 0 && (
-                  <TouchableOpacity onPress={() => handleNavigate(drug)}>
-                    <Text style={styles.detailsButtonText}>More Details</Text>
-                  </TouchableOpacity>)}
-                  {interactionCount === 0 && !isHcp && (
-                  <TouchableOpacity onPress={() => handleNavigate(drug)}>
-                    <Text style={styles.detailsButtonText}>Counselling Tips</Text>
-                  </TouchableOpacity>)}
-                  
-                </View>
+                  <View style={styles.buttonContainer}>
+                    {interactionCount > 0 && (
+                      <TouchableOpacity onPress={() => handleNavigate(drug)}>
+                        <Text style={styles.detailsButtonText}>More Details</Text>
+                      </TouchableOpacity>
+                    )}
+                    {interactionCount === 0 && !isHcp && (
+                      <TouchableOpacity onPress={() => handleNavigate(drug)}>
+                        <Text style={styles.detailsButtonText}>Counselling Tips</Text>
+                      </TouchableOpacity>
+                    )}
+                  </View>
                 </View>
 
                 <View style={{ width: '10%' }}>
-                <TouchableOpacity onPress={() => onRemoveDrug(drug.drug_id)}>
+                  <TouchableOpacity onPress={() => onRemoveDrug(drug.drug_id)}>
                     <FontAwesome name="minus-circle" size={24} color="gray" />
                   </TouchableOpacity>
                 </View>
-                
               </View>
-              
             );
           })
         )}
@@ -141,27 +171,26 @@ const SelectedDrugs = () => {
   );
 };
 
-
 const styles = StyleSheet.create({
-  container: { 
-    flex: 1, 
-    backgroundColor: '#fff', 
-    padding: 10 
+  container: {
+    flex: 1,
+    backgroundColor: '#fff',
+    padding: 10,
   },
-  scrollContainer: { 
-    paddingBottom: 20, 
-    flexGrow: 1 
+  scrollContainer: {
+    paddingBottom: 20,
+    flexGrow: 1,
   },
-  loading: { 
-    flex: 1,  
-    justifyContent: 'center', 
-    alignItems: 'center' 
+  loading: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  emptyMessage: { 
-    fontSize: 16, 
-    color: '#888', 
-    textAlign: 'center', 
-    marginTop: 20 
+  emptyMessage: {
+    fontSize: 16,
+    color: '#888',
+    textAlign: 'center',
+    marginTop: 20,
   },
   card: {
     backgroundColor: '#f8f9fa',
@@ -175,52 +204,52 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 5,
     elevation: 3,
-    flexDirection: 'row', 
-    justifyContent: 'space-between', 
-    alignItems: 'center', 
-    marginTop: 10 
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 10,
   },
-  drugName: { 
-    fontSize: 18, 
-    fontWeight: 'bold', 
-    color: '#0a7ea4', 
-    marginTop: 5 
+  drugName: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#0a7ea4',
+    marginTop: 5,
   },
-  interactionSummary: { 
-    fontSize: 16, 
-    color: '#333', 
-    marginTop: 5, 
-    fontWeight: 'bold' 
+  interactionSummary: {
+    fontSize: 16,
+    color: '#333',
+    marginTop: 5,
+    fontWeight: 'bold',
   },
-  interactionText: { 
-    fontSize: 16, 
-    color: '#333', 
-    marginTop: 2 
+  interactionText: {
+    fontSize: 16,
+    color: '#333',
+    marginTop: 2,
   },
-  noInteraction: { 
-    fontSize: 14, 
-    color: 'gray', 
-    marginTop: 5, 
-    fontStyle: 'italic' 
+  noInteraction: {
+    fontSize: 14,
+    color: 'gray',
+    marginTop: 5,
+    fontStyle: 'italic',
   },
-  buttonContainer: { 
-    flexDirection: 'row', 
-    justifyContent: 'space-between', 
-    alignItems: 'center', 
-    marginTop: 10 
+  buttonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 10,
   },
-  detailsButton: { 
-    backgroundColor: 'white', 
-    padding: 8, 
-    borderRadius: 5, 
+  detailsButton: {
+    backgroundColor: 'white',
+    padding: 8,
+    borderRadius: 5,
     alignItems: 'center',
     borderWidth: 2,
-    borderColor: '#0a7ea4' 
+    borderColor: '#0a7ea4',
   },
-  detailsButtonText: { 
-    color: '#0a7ea4', 
-    fontSize: 14, 
-    fontWeight: 'bold' 
+  detailsButtonText: {
+    color: '#0a7ea4',
+    fontSize: 14,
+    fontWeight: 'bold',
   },
   clearButton: {
     backgroundColor: '#0a7ea4',
@@ -231,17 +260,17 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     width: '40%',
   },
-  clearButtonText: { 
-    color: '#fff', 
-    fontSize: 14, 
-    fontWeight: 'bold' 
+  clearButtonText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: 'bold',
   },
-  clearButtonContainer: { 
-    position: 'absolute', 
-    bottom: 10, 
-    left: 0, 
-    right: 0, 
-    alignItems: 'center' 
+  clearButtonContainer: {
+    position: 'absolute',
+    bottom: 10,
+    left: 0,
+    right: 0,
+    alignItems: 'center',
   },
 });
 

@@ -1,7 +1,15 @@
-import { View, Text, StyleSheet, TouchableOpacity, Image, Modal } from 'react-native';
-import React, { useState } from 'react';
-import { Stack, useRouter } from 'expo-router';
+/**
+ * @file Presents the unauthenticated landing screen and role selector
+ * for patients and healthcare professionals.
+ */
 
+import { Stack, useRouter } from 'expo-router';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Image, Modal } from 'react-native';
+
+/**
+ * Displays the app entry experience and routes users by selected role.
+ */
 const Main = () => {
   const router = useRouter();
   const [modalVisible, setModalVisible] = useState(false);
@@ -11,7 +19,8 @@ const Main = () => {
       <Stack.Screen options={{ headerTransparent: true, headerTitle: '' }} />
       <View style={styles.contentWrapper}>
         <Image source={require('../../assets/images/drugSpecs.png')} style={styles.image} />
-        <Text style={styles.title}>Your Ultimate
+        <Text style={styles.title}>
+          Your Ultimate
           <Text style={{ color: '#0a7ea4' }}> Drug Interaction </Text>
           App
         </Text>
@@ -22,9 +31,7 @@ const Main = () => {
       </TouchableOpacity>
 
       <View style={styles.footer}>
-        <Text style={styles.footerText}>
-        Designed and Developed by P.E.S’s MCOP and MCOE
-        </Text>
+        <Text style={styles.footerText}>Designed and Developed by P.E.S.'s MCOP and MCOE</Text>
       </View>
 
       {/* Modal for Role Selection */}
@@ -37,16 +44,22 @@ const Main = () => {
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>Continue As</Text>
-            <TouchableOpacity style={styles.optionBtn} onPress={() => { 
-              setModalVisible(false);
-              router.push('/(pt)/pt_home/pt_counselling');
-            }}>
+            <TouchableOpacity
+              style={styles.optionBtn}
+              onPress={() => {
+                setModalVisible(false);
+                router.push('/(pt)/pt_home/pt_counselling');
+              }}
+            >
               <Text style={styles.optionText}>Patient</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.optionBtn} onPress={() => { 
-              setModalVisible(false);
-              router.push('/sign-in');
-            }}>
+            <TouchableOpacity
+              style={styles.optionBtn}
+              onPress={() => {
+                setModalVisible(false);
+                router.push('/sign-in');
+              }}
+            >
               <Text style={styles.optionText}>Healthcare Professional</Text>
             </TouchableOpacity>
             <TouchableOpacity onPress={() => setModalVisible(false)}>
@@ -152,5 +165,5 @@ const styles = StyleSheet.create({
     marginTop: 10,
     fontSize: 14,
     color: 'gray',
-  }
+  },
 });

@@ -1,9 +1,14 @@
-import { View, Text } from 'react-native'
-import React from 'react'
-import Suggest from '../../components/main/Suggest'
+/**
+ * @file Mounts the healthcare professional drug suggestion screen.
+ */
 
-const Suggestion= () => {
-  return <Suggest/>
-}
+import Suggest from '../../components/main/Suggest';
+
+/**
+ * Renders the suggestion form inside the HCP route group.
+ */
+const Suggestion = () => {
+  return <Suggest />;
+};
 
 export default Suggestion;

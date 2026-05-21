@@ -1,6 +1,14 @@
+/**
+ * @file Defines the protected healthcare professional tab layout and overflow menu.
+ */
+
+import Entypo from '@expo/vector-icons/Entypo';
+import FontAwesome from '@expo/vector-icons/FontAwesome';
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
+import { useFocusEffect } from '@react-navigation/native';
+import { Tabs, Redirect, useRouter } from 'expo-router';
 import React, { useState, useCallback } from 'react';
 import {
-  View,
   Text,
   Modal,
   TouchableOpacity,
@@ -8,34 +16,39 @@ import {
   Pressable,
   TouchableOpacityProps,
 } from 'react-native';
-import { Tabs, Redirect, useRouter } from 'expo-router';
-import FontAwesome from '@expo/vector-icons/FontAwesome';
-import MaterialIcons from '@expo/vector-icons/MaterialIcons';
-import Entypo from '@expo/vector-icons/Entypo';
+
 import { useAuth } from '../../provider/AuthProvider';
 import headerRight from '../../utils/headerRight';
-import { useFocusEffect } from '@react-navigation/native';
 
+/**
+ * Renders protected HCP tabs and the custom More menu.
+ */
 export default function HcpLayout() {
   const { session } = useAuth();
-
-  if (!session) {
-    return <Redirect href="/" />;
-  }
   const router = useRouter();
   const [isModalVisible, setModalVisible] = useState(false);
 
-  
   useFocusEffect(
     useCallback(() => {
       // Close the modal when the screen loses focus
       return () => setModalVisible(false);
-    }, [])
+    }, []),
   );
+
+  if (!session) {
+    return <Redirect href="/" />;
+  }
+
+  /**
+   * Opens or closes the HCP overflow modal.
+   */
   const toggleModal = () => {
     setModalVisible((prev) => !prev);
   };
 
+  /**
+   * Dismisses the HCP overflow modal when the backdrop is pressed.
+   */
   const handleOutsidePress = () => {
     setModalVisible(false);
   };
@@ -61,9 +74,7 @@ export default function HcpLayout() {
               height: 70,
             },
             headerRight: headerRight,
-            tabBarIcon: ({ color, size }) => (
-              <FontAwesome name="home" size={size} color={color} />
-            ),
+            tabBarIcon: ({ color, size }) => <FontAwesome name="home" size={size} color={color} />,
           }}
         />
         <Tabs.Screen
@@ -79,10 +90,8 @@ export default function HcpLayout() {
           name="profile-hcp"
           options={{
             tabBarLabel: 'Profile',
-            href : null,
-            tabBarIcon: ({ color, size }) => (
-              <FontAwesome name="user" size={size} color={color} />
-            ),
+            href: null,
+            tabBarIcon: ({ color, size }) => <FontAwesome name="user" size={size} color={color} />,
           }}
         />
         <Tabs.Screen
@@ -103,10 +112,7 @@ export default function HcpLayout() {
               <FontAwesome name="navicon" size={size} color={color} />
             ),
             tabBarButton: (props) => (
-              <TouchableOpacity
-                {...props as TouchableOpacityProps}
-                onPress={toggleModal}
-              />
+              <TouchableOpacity {...(props as TouchableOpacityProps)} onPress={toggleModal} />
             ),
           }}
         />
@@ -120,7 +126,6 @@ export default function HcpLayout() {
       >
         <Pressable style={styles.modalOverlay} onPress={handleOutsidePress}>
           <Pressable style={styles.modalContainer}>
-
             <TouchableOpacity
               style={styles.listItem}
               onPress={() => {

@@ -1,21 +1,33 @@
-import { View, Text, Alert, TextInput, StyleSheet } from "react-native";
-import supabase from "../../lib/supabase";
-import React, { useState } from "react";
-import Button from "../../components/Button";
-import { useAuth } from "../../provider/AuthProvider";
-import { Stack, useRouter } from "expo-router";
+/**
+ * @file Handles password-reset OTP delivery and verification before
+ * routing users to the password update screen.
+ */
 
+import { Stack, useRouter } from 'expo-router';
+import React, { useState } from 'react';
+import { View, Text, Alert, TextInput, StyleSheet } from 'react-native';
+
+import Button from '../../components/Button';
+import supabase from '../../lib/supabase';
+import { useAuth } from '../../provider/AuthProvider';
+
+/**
+ * Displays the password reset form for requesting and verifying email OTPs.
+ */
 const ResetPass = () => {
-  const [email, setEmail] = useState("");
-  const [otp, setOtp] = useState("");
+  const [email, setEmail] = useState('');
+  const [otp, setOtp] = useState('');
   const [step, setStep] = useState(1); // Step 1: Send OTP, Step 2: Verify OTP
   const [loading, setLoading] = useState(false);
   const router = useRouter();
-  const {setResetPending} = useAuth();
+  const { setResetPending } = useAuth();
   // ✅ 1️⃣ Send OTP to email
+  /**
+   * Sends a Supabase password recovery OTP to the entered email address.
+   */
   async function sendOtp() {
     if (!email) {
-      Alert.alert("Error", "Please enter your email to reset password.");
+      Alert.alert('Error', 'Please enter your email to reset password.');
       return;
     }
     setLoading(true);
@@ -25,18 +37,21 @@ const ResetPass = () => {
     });
 
     if (error) {
-      Alert.alert("Error", error.message);
+      Alert.alert('Error', error.message);
     } else {
-      Alert.alert("Success", "OTP sent! Check your email.");
+      Alert.alert('Success', 'OTP sent! Check your email.');
       setStep(2); // Move to OTP verification step
     }
     setLoading(false);
   }
 
   // ✅ 2️⃣ Verify OTP and log in
+  /**
+   * Verifies the submitted OTP and enables the password update flow.
+   */
   async function verifyOtp() {
     if (!otp) {
-      Alert.alert("Error", "Please enter the OTP received via email.");
+      Alert.alert('Error', 'Please enter the OTP received via email.');
       return;
     }
     setLoading(true);
@@ -44,15 +59,15 @@ const ResetPass = () => {
     const { error } = await supabase.auth.verifyOtp({
       email,
       token: otp,
-      type: "recovery", // This is a password reset OTP
+      type: 'recovery', // This is a password reset OTP
     });
 
     if (error) {
-      Alert.alert("Error", "Invalid OTP. Please try again.");
-      router.replace("/resetpass"); 
+      Alert.alert('Error', 'Invalid OTP. Please try again.');
+      router.replace('/resetpass');
     } else {
-      Alert.alert("Success", "OTP verified! Set a new password.");
-      router.replace("/updatepass"); // Navigate to update password screen
+      Alert.alert('Success', 'OTP verified! Set a new password.');
+      router.replace('/updatepass'); // Navigate to update password screen
     }
     setLoading(false);
   }
@@ -62,9 +77,9 @@ const ResetPass = () => {
       <Stack.Screen
         options={{
           headerTransparent: false,
-          title: "Reset Password",
-          headerStyle: { backgroundColor: "#0a7ea4" },
-          headerTintColor: "#fff",
+          title: 'Reset Password',
+          headerStyle: { backgroundColor: '#0a7ea4' },
+          headerTintColor: '#fff',
         }}
       />
       {step === 1 ? (
@@ -76,7 +91,7 @@ const ResetPass = () => {
             placeholder="jon@gmail.com"
             style={styles.input}
           />
-          <Button text={loading ? "Sending..." : "Send OTP"} onPress={sendOtp} />
+          <Button text={loading ? 'Sending...' : 'Send OTP'} onPress={sendOtp} />
         </>
       ) : (
         <>
@@ -88,7 +103,7 @@ const ResetPass = () => {
             style={styles.input}
             keyboardType="numeric"
           />
-          <Button text={loading ? "Verifying..." : "Verify OTP"} onPress={verifyOtp} />
+          <Button text={loading ? 'Verifying...' : 'Verify OTP'} onPress={verifyOtp} />
         </>
       )}
     </View>
@@ -98,19 +113,19 @@ const ResetPass = () => {
 const styles = StyleSheet.create({
   container: {
     padding: 20,
-    justifyContent: "center",
+    justifyContent: 'center',
     flex: 1,
   },
   label: {
-    color: "gray",
+    color: 'gray',
   },
   input: {
     borderWidth: 1,
-    borderColor: "gray",
+    borderColor: 'gray',
     padding: 10,
     marginTop: 5,
     marginBottom: 20,
-    backgroundColor: "white",
+    backgroundColor: 'white',
     borderRadius: 5,
   },
 });

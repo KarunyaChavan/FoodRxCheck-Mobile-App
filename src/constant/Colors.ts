@@ -1,3 +1,7 @@
+/**
+ * @file Centralizes the app color tokens used by shared UI components.
+ */
+
 const tintColorLight = '#2f95dc';
 const tintColorDark = '#fff';
 

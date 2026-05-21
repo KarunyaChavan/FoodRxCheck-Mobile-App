@@ -1,9 +1,17 @@
-import { View, Text, StyleSheet, TouchableOpacity, Animated, Easing } from 'react-native';
-import React, { useEffect, useRef } from 'react';
-import { useAuth } from "../../provider/AuthProvider";
-import supabase from '../../lib/supabase';
-import { useFocusEffect } from '@react-navigation/native';
+/**
+ * @file Renders the healthcare professional profile summary and actions.
+ */
 
+import { useFocusEffect } from '@react-navigation/native';
+import React, { useCallback, useRef } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Animated, Easing } from 'react-native';
+
+import supabase from '../../lib/supabase';
+import { useAuth } from '../../provider/AuthProvider';
+
+/**
+ * Displays the signed-in HCP profile details and sign-out action.
+ */
 const Profile = () => {
   const { user } = useAuth();
   const dropAnim = useRef(new Animated.Value(-200)).current;
@@ -12,11 +20,11 @@ const Profile = () => {
   try {
     qualificationData = user?.qualification ? JSON.parse(user.qualification) : null;
   } catch (error) {
-    console.error("Error parsing qualification data:", error);
+    console.error('Error parsing qualification data:', error);
   }
 
   useFocusEffect(
-    React.useCallback(() => {
+    useCallback(() => {
       dropAnim.setValue(-200); // Reset animation value
       Animated.timing(dropAnim, {
         toValue: 0,
@@ -24,7 +32,7 @@ const Profile = () => {
         easing: Easing.out(Easing.ease),
         useNativeDriver: false,
       }).start();
-    }, [])
+    }, [dropAnim]),
   );
 
   return (
@@ -41,14 +49,24 @@ const Profile = () => {
         {qualificationData && (
           <View style={styles.qualificationContainer}>
             <Text style={styles.qualificationHeader}>Qualification Details</Text>
-            <TouchableOpacity style={styles.menuItem} onPress={() => console.log('Sharing profile')}>
-          <Text style={styles.menuItemText}><Text style={styles.boldText}>Degree: </Text>{qualificationData.degree}</Text>
-        </TouchableOpacity><TouchableOpacity style={styles.menuItem} onPress={() => console.log('Sharing profile')}>
-          <Text style={styles.menuItemText}><Text style={styles.boldText}>Department: </Text>{qualificationData.department}</Text>
-        </TouchableOpacity><TouchableOpacity style={styles.menuItem} onPress={() => console.log('Sharing profile')}>
-          <Text style={styles.menuItemText}><Text style={styles.boldText}>Institution: </Text>{qualificationData.institution}</Text>
-        </TouchableOpacity>
-
+            <TouchableOpacity style={styles.menuItem}>
+              <Text style={styles.menuItemText}>
+                <Text style={styles.boldText}>Degree: </Text>
+                {qualificationData.degree}
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.menuItem}>
+              <Text style={styles.menuItemText}>
+                <Text style={styles.boldText}>Department: </Text>
+                {qualificationData.department}
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.menuItem}>
+              <Text style={styles.menuItemText}>
+                <Text style={styles.boldText}>Institution: </Text>
+                {qualificationData.institution}
+              </Text>
+            </TouchableOpacity>
           </View>
         )}
         <TouchableOpacity style={styles.button} onPress={() => supabase.auth.signOut()}>

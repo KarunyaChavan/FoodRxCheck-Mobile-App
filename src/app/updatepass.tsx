@@ -1,10 +1,18 @@
-import { View, Text, Alert, TextInput, StyleSheet } from 'react-native';
-import supabase from '../lib/supabase';
+/**
+ * @file Lets authenticated recovery users set a new Supabase password.
+ */
+
+import { useRouter, Stack } from 'expo-router';
 import React, { useState } from 'react';
+import { View, Text, Alert, TextInput, StyleSheet } from 'react-native';
+
 import Button from '../components/Button';
-import { useRouter,Stack } from 'expo-router';
+import supabase from '../lib/supabase';
 import { useAuth } from '../provider/AuthProvider';
 
+/**
+ * Displays the password update form for users in the recovery flow.
+ */
 const ResetPasswordScreen = () => {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -12,7 +20,9 @@ const ResetPasswordScreen = () => {
   const router = useRouter();
   const { setResetPending } = useAuth();
 
-  // Handle password update
+  /**
+   * Validates matching passwords and updates the Supabase user password.
+   */
   async function updatePassword() {
     if (!password || !confirmPassword) {
       Alert.alert('Error', 'Please fill in all fields.');
@@ -25,7 +35,7 @@ const ResetPasswordScreen = () => {
     }
 
     setLoading(true);
-  
+
     // Attempt to update password
     const { error } = await supabase.auth.updateUser({ password });
 
@@ -45,13 +55,13 @@ const ResetPasswordScreen = () => {
   return (
     <View style={styles.container}>
       <Stack.Screen
-              options={{
-                headerTransparent: false,
-                title: "Update Password",
-                headerStyle: { backgroundColor: "#0a7ea4" },
-                headerTintColor: "#fff",
-              }}
-            />
+        options={{
+          headerTransparent: false,
+          title: 'Update Password',
+          headerStyle: { backgroundColor: '#0a7ea4' },
+          headerTintColor: '#fff',
+        }}
+      />
       <Text style={styles.label}>New Password</Text>
       <TextInput
         value={password}
@@ -68,7 +78,11 @@ const ResetPasswordScreen = () => {
         style={styles.input}
         secureTextEntry
       />
-      <Button text={loading ? 'Updating...' : 'Update Password'} onPress={updatePassword} disabled={loading} />
+      <Button
+        text={loading ? 'Updating...' : 'Update Password'}
+        onPress={updatePassword}
+        disabled={loading}
+      />
     </View>
   );
 };

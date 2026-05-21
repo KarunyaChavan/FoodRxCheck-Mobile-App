@@ -1,9 +1,25 @@
-import React, { useState } from 'react';
-import { View, Text, ActivityIndicator, FlatList, StyleSheet, TouchableOpacity, Image, Modal, ScrollView, Platform } from 'react-native';
-import { Stack, useLocalSearchParams } from 'expo-router';
-import supabase from '../../../lib/supabase';
+/**
+ * @file Shows patient-facing general instruction details and images.
+ */
+
 import { useQuery } from '@tanstack/react-query';
+import { Stack, useLocalSearchParams } from 'expo-router';
+import React, { useState } from 'react';
+import {
+  View,
+  Text,
+  ActivityIndicator,
+  FlatList,
+  StyleSheet,
+  TouchableOpacity,
+  Image,
+  Modal,
+  Platform,
+} from 'react-native';
+
 import ZoomableImage from '@/components/Image-view';
+
+import supabase from '../../../lib/supabase';
 
 type Product = {
   instructions: string;
@@ -11,12 +27,19 @@ type Product = {
   image_path: string;
 };
 
+/**
+ * Renders patient general-instruction details for a selected drug.
+ */
 const DrugDetails: React.FC = () => {
-  const { id, name } = useLocalSearchParams<{ id: string, name: string }>();
+  const { id, name } = useLocalSearchParams<{ id: string; name: string }>();
   const [modalVisible, setModalVisible] = useState(false);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
 
-  const { data: directionData, isLoading, error } = useQuery<Product>({
+  const {
+    data: directionData,
+    isLoading,
+    error,
+  } = useQuery<Product>({
     queryKey: ['instructions', id],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -31,11 +54,17 @@ const DrugDetails: React.FC = () => {
     },
   });
 
+  /**
+   * Opens the selected drug image in a zoomable modal.
+   */
   const openImageModal = (url: string) => {
     setImageUrl(url);
     setModalVisible(true);
   };
 
+  /**
+   * Closes the zoomable drug image modal.
+   */
   const closeImageModal = () => {
     setModalVisible(false);
     setImageUrl(null);
@@ -51,7 +80,14 @@ const DrugDetails: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <Stack.Screen options={{ headerTransparent: false, title: 'General Instructions', headerStyle: { backgroundColor: '#0a7ea4' }, headerTintColor: '#fff' }} />
+      <Stack.Screen
+        options={{
+          headerTransparent: false,
+          title: 'General Instructions',
+          headerStyle: { backgroundColor: '#0a7ea4' },
+          headerTintColor: '#fff',
+        }}
+      />
       <View style={styles.drugInfo}>
         <Text style={styles.cardTitle}>{name}</Text>
       </View>

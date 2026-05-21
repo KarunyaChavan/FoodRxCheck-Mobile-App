@@ -1,10 +1,22 @@
-import React, { useState } from 'react';
-import { View, FlatList, Text, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
-import { useRouter, useLocalSearchParams, Stack,Redirect } from 'expo-router';
-import supabase from '../../../lib/supabase';
-import { Platform } from 'react-native';
-import SearchBar from '../../../components/Searchbar';
+/**
+ * @file Lists subclasses or direct drugs for a selected HCP class.
+ */
+
 import { useQuery } from '@tanstack/react-query';
+import { useRouter, useLocalSearchParams, Stack, Redirect } from 'expo-router';
+import React, { useState } from 'react';
+import {
+  View,
+  FlatList,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  ActivityIndicator,
+} from 'react-native';
+import { Platform } from 'react-native';
+
+import SearchBar from '../../../components/Searchbar';
+import supabase from '../../../lib/supabase';
 import { useAuth } from '../../../provider/AuthProvider';
 
 type SubClass = {
@@ -17,16 +29,20 @@ type Drug = {
   drug_name: string;
 };
 
+/**
+ * Lists subclasses for a drug class, falling back to direct drugs when needed.
+ */
 const SubClassList = () => {
-  const {session} = useAuth();
-    if(!session ){
-      return <Redirect href={'/'} />;
-    }
+  const { session } = useAuth();
   const router = useRouter();
-  const { class_id, classname } = useLocalSearchParams<{ class_id: string, classname: string }>();
+  const { class_id, classname } = useLocalSearchParams<{ class_id: string; classname: string }>();
   const [filter, setFilter] = useState<string>('');
 
-  const { data: subClasses, isLoading: isSubClassesLoading, error: subClassesError } = useQuery<SubClass[]>({
+  const {
+    data: subClasses,
+    isLoading: isSubClassesLoading,
+    error: subClassesError,
+  } = useQuery<SubClass[]>({
     queryKey: ['sub_classes', class_id],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -39,9 +55,14 @@ const SubClassList = () => {
       }
       return data;
     },
+    enabled: Boolean(session && class_id),
   });
 
-  const { data: drugs, isLoading: isDrugsLoading, error: drugsError } = useQuery<Drug[]>({
+  const {
+    data: drugs,
+    isLoading: isDrugsLoading,
+    error: drugsError,
+  } = useQuery<Drug[]>({
     queryKey: ['drugs', class_id],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -54,8 +75,12 @@ const SubClassList = () => {
       }
       return data;
     },
-    enabled: subClasses?.length === 0, // Only fetch drugs if there are no sub-classes
+    enabled: Boolean(session && class_id && subClasses?.length === 0),
   });
+
+  if (!session) {
+    return <Redirect href={'/'} />;
+  }
 
   if (isSubClassesLoading || isDrugsLoading) {
     return <ActivityIndicator style={styles.loadingContainer} size="large" color="#000" />;
@@ -69,17 +94,24 @@ const SubClassList = () => {
     return <Text>Error: {drugsError.message}</Text>;
   }
 
-  const filteredSubClasses = subClasses?.filter(subClass =>
-    subClass.name.toLowerCase().includes(filter.toLowerCase())
+  const filteredSubClasses = subClasses?.filter((subClass) =>
+    subClass.name.toLowerCase().includes(filter.toLowerCase()),
   );
 
-  const filteredDrugs = drugs?.filter(drug =>
-    drug.drug_name.toLowerCase().includes(filter.toLowerCase())
+  const filteredDrugs = drugs?.filter((drug) =>
+    drug.drug_name.toLowerCase().includes(filter.toLowerCase()),
   );
 
   return (
     <View style={styles.container}>
-      <Stack.Screen options={{ headerTransparent: false, title: `Class : ${classname}`, headerStyle: { backgroundColor: '#0a7ea4' }, headerTintColor: '#fff' }} />
+      <Stack.Screen
+        options={{
+          headerTransparent: false,
+          title: `Class : ${classname}`,
+          headerStyle: { backgroundColor: '#0a7ea4' },
+          headerTintColor: '#fff',
+        }}
+      />
       <SearchBar filter={filter} setFilter={setFilter} />
       {subClasses?.length === 0 ? (
         <FlatList
@@ -88,7 +120,12 @@ const SubClassList = () => {
           renderItem={({ item }) => (
             <TouchableOpacity
               style={styles.card}
-              onPress={() => router.push({ pathname: `/hcp_dynamic/drug-details/[id]`, params: { id: item.drug_id.toString(), name: item.drug_name } })}
+              onPress={() =>
+                router.push({
+                  pathname: `/hcp_dynamic/drug-details/[id]`,
+                  params: { id: item.drug_id.toString(), name: item.drug_name },
+                })
+              }
             >
               <Text style={styles.drugName}>{item.drug_name}</Text>
             </TouchableOpacity>
@@ -101,7 +138,12 @@ const SubClassList = () => {
           renderItem={({ item }) => (
             <TouchableOpacity
               style={styles.card}
-              onPress={() => router.push({ pathname: `/hcp_dynamic/drugs/[sub_class_id]`, params: { sub_class_id: item.sub_class_id.toString(), subclassname: item.name } })}
+              onPress={() =>
+                router.push({
+                  pathname: `/hcp_dynamic/drugs/[sub_class_id]`,
+                  params: { sub_class_id: item.sub_class_id.toString(), subclassname: item.name },
+                })
+              }
             >
               <Text style={styles.subClassName}>{item.name}</Text>
             </TouchableOpacity>
@@ -118,9 +160,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     ...Platform.select({
       ios: {
-        marginTop: 38
-      },
-      android: {
+        marginTop: 38,
       },
     }),
   },

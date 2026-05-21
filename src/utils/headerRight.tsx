@@ -1,9 +1,17 @@
+/**
+ * @file Renders the selected-drugs header action with a live count badge.
+ */
+
+import { FontAwesome } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import React from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
-import { useRouter } from 'expo-router';
-import { FontAwesome } from '@expo/vector-icons';
+
 import { useDrugs } from '../provider/DrugsProvider';
 
+/**
+ * Renders a header button that links to selected drugs with a count badge.
+ */
 const SelectedDrugsButton: React.FC = () => {
   const router = useRouter();
   const { selectedDrugs } = useDrugs();

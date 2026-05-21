@@ -1,10 +1,27 @@
-import React, { useState, useEffect, useRef  } from 'react';
-import { View, TextInput, FlatList, Text, StyleSheet, ActivityIndicator, TouchableOpacity,Animated} from 'react-native';
-import { useQuery } from '@tanstack/react-query';
-import supabase from '../lib/supabase'; 
-import { FontAwesome } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
+/**
+ * @file Implements shared food-drug search across patient and HCP flows.
+ */
 
+import { FontAwesome } from '@expo/vector-icons';
+import { useQuery } from '@tanstack/react-query';
+import { useRouter } from 'expo-router';
+import React, { useState, useEffect, useRef } from 'react';
+import {
+  View,
+  TextInput,
+  FlatList,
+  Text,
+  StyleSheet,
+  ActivityIndicator,
+  TouchableOpacity,
+  Animated,
+} from 'react-native';
+
+import supabase from '../lib/supabase';
+
+/**
+ * Finds drugs that interact with the supplied food term.
+ */
 const fetchDrugsByFood = async (food: string, interactionsTable: string, drugsTable: string) => {
   if (!food.trim()) return [];
 
@@ -42,11 +59,24 @@ interface FoodSearchProps {
   drugsTable: string;
 }
 
-const FoodSearchComponent: React.FC<FoodSearchProps> = ({ placeholder, routePath, interactionsTable, drugsTable }) => {
+/**
+ * Displays food interaction search results and routes selected drugs to detail pages.
+ */
+const FoodSearchComponent: React.FC<FoodSearchProps> = ({
+  placeholder,
+  routePath,
+  interactionsTable,
+  drugsTable,
+}) => {
   const router = useRouter();
   const [searchTerm, setSearchTerm] = useState('');
 
-  const { data: drugs, isLoading, error, refetch } = useQuery({
+  const {
+    data: drugs,
+    isLoading,
+    error,
+    refetch,
+  } = useQuery({
     queryKey: [`searchDrugs-${interactionsTable}-${drugsTable}`, searchTerm],
     queryFn: () => fetchDrugsByFood(searchTerm, interactionsTable, drugsTable),
     enabled: false, // Only fetch on button press
@@ -83,7 +113,9 @@ const FoodSearchComponent: React.FC<FoodSearchProps> = ({ placeholder, routePath
     return () => clearInterval(interval);
   }, [fadeAnim, rollingTextItems.length]);
 
-
+  /**
+   * Clears the active food-search input and refreshes cached results.
+   */
   const handleClearSearch = () => {
     setSearchTerm('');
   };
@@ -103,22 +135,21 @@ const FoodSearchComponent: React.FC<FoodSearchProps> = ({ placeholder, routePath
         </TouchableOpacity>
 
         {searchTerm.length > 0 && (
-                <TouchableOpacity style={styles.clearButton} onPress={handleClearSearch}>
-                <FontAwesome name="times" size={20} color="white" />
-              </TouchableOpacity>
-              )}
-        
+          <TouchableOpacity style={styles.clearButton} onPress={handleClearSearch}>
+            <FontAwesome name="times" size={20} color="white" />
+          </TouchableOpacity>
+        )}
       </View>
 
       {searchTerm === '' && !isLoading && !drugs && (
-        <View style={{marginTop: 20}}>
-          <Text style={styles.instructionsText}>Enter food item to find Their interactions</Text> 
-        <View style={{ alignSelf: 'center', display: 'flex', flexDirection: 'row' }}>
-        <Animated.Text style={[styles.instructionsText, { opacity: fadeAnim }]}>
-          {rollingTextItems[currentIndex]}
-        </Animated.Text>
-      </View>
-      </View>
+        <View style={{ marginTop: 20 }}>
+          <Text style={styles.instructionsText}>Enter food item to find Their interactions</Text>
+          <View style={{ alignSelf: 'center', display: 'flex', flexDirection: 'row' }}>
+            <Animated.Text style={[styles.instructionsText, { opacity: fadeAnim }]}>
+              {rollingTextItems[currentIndex]}
+            </Animated.Text>
+          </View>
+        </View>
       )}
 
       {isLoading && <ActivityIndicator size="large" color="#0a7ea4" style={{ marginTop: 20 }} />}
@@ -216,7 +247,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontSize: 16,
     color: '#888',
-    marginTop:8,
+    marginTop: 8,
     marginHorizontal: 10,
   },
   noResultsText: {

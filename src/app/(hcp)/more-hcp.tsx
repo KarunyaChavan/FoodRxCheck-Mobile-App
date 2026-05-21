@@ -1,10 +1,12 @@
-import { StyleSheet, Text, View } from 'react-native'
-import React from 'react'
+/**
+ * @file Provides the placeholder route used by the HCP tab overflow menu.
+ */
 
+/**
+ * Placeholder screen required for the HCP overflow tab route.
+ */
 const More = () => {
-  return (
-null  )
-}
+  return null;
+};
 
-export default More
-
+export default More;

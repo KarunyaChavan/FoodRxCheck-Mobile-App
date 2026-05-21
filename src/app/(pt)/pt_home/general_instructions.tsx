@@ -1,39 +1,56 @@
-import { View, FlatList, Text, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
+/**
+ * @file Lists patient general instructions for selected drugs.
+ */
+
+import { useQuery } from '@tanstack/react-query';
+import { useRouter } from 'expo-router';
+import React from 'react';
+import {
+  View,
+  FlatList,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  ActivityIndicator,
+} from 'react-native';
+
+import supabase from '../../../lib/supabase';
 
 type Product = {
   id: number;
   drug: string;
 };
-import { useRouter } from 'expo-router';
-import supabase from '../../../lib/supabase';
-import { useEffect, useState } from 'react';
-import React from 'react'
-import SearchBar from '../../../components/Searchbar';
-import { useQuery } from '@tanstack/react-query';
 
-const Drugs: React.FC<{ filter: string }> = ({ filter }) =>  {
+/**
+ * Shows filtered general-instruction drug records for patient education.
+ */
+const Drugs: React.FC<{ filter: string }> = ({ filter }) => {
   const router = useRouter();
-  const {data : Drugs, isLoading, error } = useQuery<Product[]>({
+  const {
+    data: Drugs,
+    isLoading,
+    error,
+  } = useQuery<Product[]>({
     queryKey: ['general_instructions'],
     queryFn: async () => {
-      const { data , error } =  await supabase
-              .from('general_instructions')
-              .select('id,drug')
-              .order('drug', { ascending: true });
+      const { data, error } = await supabase
+        .from('general_instructions')
+        .select('id,drug')
+        .order('drug', { ascending: true });
       if (error) {
         throw new Error(error.message);
       }
       return data;
     },
   });
-  if(isLoading){
+  if (isLoading) {
     return <ActivityIndicator style={styles.loadingContainer} size="large" color="#000" />;
   }
-  if(error){
+  if (error) {
     return <Text>Error: {error.message}</Text>;
   }
-  const filteredDrugs = Drugs?.filter(drug =>
-    drug.drug.toLowerCase().includes(filter.toLowerCase())
+  const filteredDrugs = Drugs?.filter((drug) =>
+    drug.drug.toLowerCase().includes(filter.toLowerCase()),
   );
   return (
     <View style={styles.container}>
@@ -43,7 +60,12 @@ const Drugs: React.FC<{ filter: string }> = ({ filter }) =>  {
         renderItem={({ item }) => (
           <TouchableOpacity
             style={styles.card}
-            onPress={() => router.push({ pathname: `/patient_dynamic/drugs-pt/[id]`, params: { id: item.id.toString(), name: item.drug } })}
+            onPress={() =>
+              router.push({
+                pathname: `/patient_dynamic/drugs-pt/[id]`,
+                params: { id: item.id.toString(), name: item.drug },
+              })
+            }
           >
             <Text style={styles.drugName}>{item.drug}</Text>
           </TouchableOpacity>
@@ -94,6 +116,5 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
 });
-
 
 export default Drugs;

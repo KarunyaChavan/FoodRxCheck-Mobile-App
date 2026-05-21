@@ -1,9 +1,22 @@
-import React, { useState } from 'react';
-import { View, FlatList, Text, TouchableOpacity, StyleSheet, ActivityIndicator, Platform } from 'react-native';
-import { useRouter, useLocalSearchParams, Stack, Redirect } from 'expo-router';
-import supabase from '../../../lib/supabase';
-import SearchBar from '../../../components/Searchbar';
+/**
+ * @file Lists drugs belonging to a selected HCP subclass.
+ */
+
 import { useQuery } from '@tanstack/react-query';
+import { useRouter, useLocalSearchParams, Stack, Redirect } from 'expo-router';
+import React, { useState } from 'react';
+import {
+  View,
+  FlatList,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  ActivityIndicator,
+  Platform,
+} from 'react-native';
+
+import SearchBar from '../../../components/Searchbar';
+import supabase from '../../../lib/supabase';
 import { useAuth } from '../../../provider/AuthProvider';
 
 type Drug = {
@@ -11,17 +24,23 @@ type Drug = {
   drug_name: string;
 };
 
+/**
+ * Lists all drugs for a selected subclass and routes to HCP details.
+ */
 const DrugList = () => {
   const { session } = useAuth();
-  if (!session ) {
-    return <Redirect href="/" />;
-  }
-
   const router = useRouter();
-  const { sub_class_id, subclassname } = useLocalSearchParams<{ sub_class_id: string, subclassname: string }>();
+  const { sub_class_id, subclassname } = useLocalSearchParams<{
+    sub_class_id: string;
+    subclassname: string;
+  }>();
   const [filter, setFilter] = useState<string>('');
 
-  const { data: drugs, isLoading, error } = useQuery<Drug[]>({
+  const {
+    data: drugs,
+    isLoading,
+    error,
+  } = useQuery<Drug[]>({
     queryKey: ['drugs', sub_class_id],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -34,7 +53,12 @@ const DrugList = () => {
       }
       return data;
     },
+    enabled: Boolean(session && sub_class_id),
   });
+
+  if (!session) {
+    return <Redirect href="/" />;
+  }
 
   if (isLoading) {
     return <ActivityIndicator style={styles.loadingContainer} size="large" color="#000" />;
@@ -43,8 +67,8 @@ const DrugList = () => {
     return <Text>Error: {error.message}</Text>;
   }
 
-  const filteredDrugs = drugs?.filter(drug =>
-    drug.drug_name.toLowerCase().includes(filter.toLowerCase())
+  const filteredDrugs = drugs?.filter((drug) =>
+    drug.drug_name.toLowerCase().includes(filter.toLowerCase()),
   );
 
   return (
@@ -68,7 +92,12 @@ const DrugList = () => {
           renderItem={({ item }) => (
             <TouchableOpacity
               style={styles.card}
-              onPress={() => router.push({ pathname: `/hcp_dynamic/drug-details/[id]`, params: { id: item.drug_id.toString(), name: item.drug_name } })}
+              onPress={() =>
+                router.push({
+                  pathname: `/hcp_dynamic/drug-details/[id]`,
+                  params: { id: item.drug_id.toString(), name: item.drug_name },
+                })
+              }
             >
               <Text style={styles.drugName}>{item.drug_name}</Text>
             </TouchableOpacity>
@@ -90,7 +119,7 @@ const styles = StyleSheet.create({
     }),
   },
   list: {
-    flex: 1,  // Ensure the FlatList container takes up the available space
+    flex: 1,
     paddingLeft: 10,
   },
   loadingContainer: {
@@ -118,7 +147,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 5,
     borderLeftWidth: 5,
-    borderLeftColor: '#0a7ea4'
+    borderLeftColor: '#0a7ea4',
   },
 });
 

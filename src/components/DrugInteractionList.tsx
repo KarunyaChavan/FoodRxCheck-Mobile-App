@@ -1,9 +1,22 @@
-import React, { useState } from 'react';
-import { View, Text, ActivityIndicator, FlatList, StyleSheet, TouchableOpacity, Platform } from 'react-native';
-import { Stack, useLocalSearchParams } from 'expo-router';
-import supabase from '../lib/supabase';
+/**
+ * @file Renders interaction detail cards for a selected drug.
+ */
+
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { useQuery } from '@tanstack/react-query';
+import { Stack, useLocalSearchParams } from 'expo-router';
+import React, { useState } from 'react';
+import {
+  View,
+  Text,
+  ActivityIndicator,
+  FlatList,
+  StyleSheet,
+  TouchableOpacity,
+  Platform,
+} from 'react-native';
+
+import supabase from '../lib/supabase';
 import parseAndRenderText from '../utils/parsehttp';
 
 interface InteractionBase {
@@ -24,12 +37,19 @@ interface DrugInteractionListProps {
   tableName: 'interactions' | 'patient_interactions';
 }
 
+/**
+ * Shows expandable interaction rows for the selected drug and data table.
+ */
 const DrugInteractionList: React.FC<DrugInteractionListProps> = ({ tableName }) => {
   const { id, name } = useLocalSearchParams<{ id: string; name: string }>();
   const [expandedItems, setExpandedItems] = useState<{ [key: number]: boolean }>({});
 
   // Fetch data
-  const { data: drugDetails, isLoading, error } = useQuery<Interaction[]>({
+  const {
+    data: drugDetails,
+    isLoading,
+    error,
+  } = useQuery<Interaction[]>({
     queryKey: [tableName, id],
     queryFn: async () => {
       const { data, error } = await supabase.from(tableName).select('*').eq('drug_id', id);
@@ -38,22 +58,38 @@ const DrugInteractionList: React.FC<DrugInteractionListProps> = ({ tableName }) 
     },
   });
 
-  if (isLoading) return <ActivityIndicator style={styles.loadingContainer} size="large" color="#000" />;
+  if (isLoading)
+    return <ActivityIndicator style={styles.loadingContainer} size="large" color="#000" />;
   if (error) return <Text>Error: {error.message}</Text>;
 
+  /**
+   * Toggles an interaction card between collapsed and expanded states.
+   */
   const toggleExpansion = (index: number) => {
     setExpandedItems((prev) => ({ ...prev, [index]: !prev[index] }));
   };
 
   // Filter valid food interactions
-  const validDrugDetails = drugDetails?.filter(item => item.food !== 'NA') || [];
+  const validDrugDetails = drugDetails?.filter((item) => item.food !== 'NA') || [];
   const hasValidInteractions = validDrugDetails.length > 0;
 
   // Include counselling tips even when food interactions are 'NA'
-  const dataWithCounsellingTips = tableName === 'patient_interactions' && drugDetails?.[0]?.counselling_tips
-    ? [...validDrugDetails, { drug_id: id, food: 'No Food Drug Interaction Available', counselling_tips: drugDetails[0]?.counselling_tips, isCounsellingTips: true }]
-    : validDrugDetails;
+  const dataWithCounsellingTips =
+    tableName === 'patient_interactions' && drugDetails?.[0]?.counselling_tips
+      ? [
+          ...validDrugDetails,
+          {
+            drug_id: id,
+            food: 'No Food Drug Interaction Available',
+            counselling_tips: drugDetails[0]?.counselling_tips,
+            isCounsellingTips: true,
+          },
+        ]
+      : validDrugDetails;
 
+  /**
+   * Renders one interaction row inside the FlatList.
+   */
   const renderInteractionItem = ({ item, index }: { item: Interaction; index: number }) => {
     const isExpanded = expandedItems[index];
 
@@ -116,9 +152,7 @@ const DrugInteractionList: React.FC<DrugInteractionListProps> = ({ tableName }) 
               <Text style={{ fontSize: 18, fontWeight: 'bold', color: '#fff' }}>
                 Food Drug Interaction
               </Text>
-              <Text style={{ fontSize: 16, color: '#fff' }}>
-                {name}
-              </Text>
+              <Text style={{ fontSize: 16, color: '#fff' }}>{name}</Text>
             </View>
           ),
           headerStyle: { backgroundColor: '#0a7ea4' },
@@ -128,7 +162,9 @@ const DrugInteractionList: React.FC<DrugInteractionListProps> = ({ tableName }) 
 
       <View style={styles.drugInfo}>
         <Text style={styles.cardTitle}>
-          {hasValidInteractions ? `${validDrugDetails.length} Food Interaction${validDrugDetails.length !== 1 ? 's' : ''}` : 'No Food Drug Interaction Available'}
+          {hasValidInteractions
+            ? `${validDrugDetails.length} Food Interaction${validDrugDetails.length !== 1 ? 's' : ''}`
+            : 'No Food Drug Interaction Available'}
         </Text>
       </View>
 
@@ -164,7 +200,7 @@ const styles = StyleSheet.create({
     marginVertical: 5,
     borderRadius: 10,
     shadowColor: '#000',
-    shadowOffset: { width: 5, height: 5},
+    shadowOffset: { width: 5, height: 5 },
     shadowOpacity: 0.8,
     shadowRadius: 10,
     elevation: 5,

@@ -1,8 +1,20 @@
-import React from 'react';
-import { View, FlatList, Text, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
-import { useRouter } from 'expo-router';
-import { useDrugs } from '../provider/DrugsProvider';
+/**
+ * @file Provides a reusable filtered drug list for HCP and patient routes.
+ */
+
 import { FontAwesome } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
+import React from 'react';
+import {
+  View,
+  FlatList,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  ActivityIndicator,
+} from 'react-native';
+
+import { useDrugs } from '../provider/DrugsProvider';
 
 interface DrugListProps {
   filter: string;
@@ -24,16 +36,18 @@ interface Page {
   data: Drug[];
 }
 
+/**
+ * Renders a searchable, paginated drug list using the supplied data hook.
+ */
 const DrugListComponent: React.FC<DrugListProps> = ({ filter, usePaginatedDrugs, pushPath }) => {
   const router = useRouter();
   const { selectedDrugs, onAddDrug, onRemoveDrug } = useDrugs();
-  const { data, fetchNextPage, hasNextPage, isFetchingNextPage,isLoading } = usePaginatedDrugs();
-
+  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } = usePaginatedDrugs();
 
   const drugs: Drug[] = data?.pages.flatMap((page: Page) => page.data) || [];
 
   const filteredDrugs = drugs.filter((drug) =>
-    drug.drug_name.toLowerCase().includes(filter.toLowerCase())
+    drug.drug_name.toLowerCase().includes(filter.toLowerCase()),
   );
   if (isLoading) {
     return <ActivityIndicator style={styles.loadingContainer} size="large" color="#000" />;

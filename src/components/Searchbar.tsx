@@ -1,4 +1,7 @@
-// components/SearchBar.tsx
+/**
+ * @file Provides the shared search input used by list screens.
+ */
+
 import React from 'react';
 import { View, TextInput, TouchableOpacity, Text, StyleSheet } from 'react-native';
 
@@ -7,6 +10,9 @@ type SearchBarProps = {
   setFilter: (value: string) => void;
 };
 
+/**
+ * Renders the shared controlled search field for list filtering.
+ */
 const SearchBar: React.FC<SearchBarProps> = ({ filter, setFilter }) => {
   return (
     <View style={styles.searchContainer}>

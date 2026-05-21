@@ -1,30 +1,49 @@
-import { View, Text,Alert,AppState, TextInput, StyleSheet, TouchableOpacity } from 'react-native';
-import supabase from '../../lib/supabase';
+/**
+ * @file Renders the healthcare professional sign-in screen and starts
+ * Supabase email/password authentication.
+ */
+
+import { Stack, useRouter } from 'expo-router';
 import React, { useState } from 'react';
+import { View, Text, Alert, TextInput, StyleSheet, TouchableOpacity } from 'react-native';
+
 import Button from '../../components/Button';
 import Colors from '../../constant/Colors';
-import { Link, router, Stack,useRouter } from 'expo-router';
+import supabase from '../../lib/supabase';
 
+/**
+ * Displays the HCP login form and navigation to password reset/sign-up flows.
+ */
 const SignInScreen = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [loading,setLoading] = useState(false);
+  const [loading, setLoading] = useState(false);
   const router = useRouter();
-  
-  async function signInWithEmail() {
-    setLoading(true)
-    const { error } = await supabase.auth.signInWithPassword({
-      email: email,
-      password: password,
-    })
 
-    if (error) Alert.alert(error.message)
-    setLoading(false)
+  /**
+   * Signs an HCP into Supabase with the entered email and password.
+   */
+  async function signInWithEmail() {
+    setLoading(true);
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    if (error) Alert.alert(error.message);
+    setLoading(false);
   }
 
   return (
     <View style={styles.container}>
-      <Stack.Screen options={{headerTransparent:false , title: 'Sign In', headerStyle:{ backgroundColor: '#0a7ea4'}, headerTintColor: '#fff' }} />
+      <Stack.Screen
+        options={{
+          headerTransparent: false,
+          title: 'Sign In',
+          headerStyle: { backgroundColor: '#0a7ea4' },
+          headerTintColor: '#fff',
+        }}
+      />
       <Text style={styles.label}>Email</Text>
       <TextInput
         value={email}
@@ -41,13 +60,17 @@ const SignInScreen = () => {
         style={styles.input}
         secureTextEntry
       />
-      <TouchableOpacity onPress={()=> router.push('/resetpass')} style={styles.forgotButton}>
-        <Text style={{color:'#0a7ea4'}}>Forgot Password ?</Text>
+      <TouchableOpacity onPress={() => router.push('/resetpass')} style={styles.forgotButton}>
+        <Text style={{ color: '#0a7ea4' }}>Forgot Password ?</Text>
       </TouchableOpacity>
-      <Button text={loading ? 'Signing in...' : 'Sign in'} onPress={signInWithEmail} disabled={loading} />
-      
-      <TouchableOpacity onPress={()=> router.replace('/sign-up')} style={styles.textButton}>
-        <Text style={{color:'#0a7ea4'}}>Create an account</Text>
+      <Button
+        text={loading ? 'Signing in...' : 'Sign in'}
+        onPress={signInWithEmail}
+        disabled={loading}
+      />
+
+      <TouchableOpacity onPress={() => router.replace('/sign-up')} style={styles.textButton}>
+        <Text style={{ color: '#0a7ea4' }}>Create an account</Text>
       </TouchableOpacity>
     </View>
   );

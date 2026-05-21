@@ -1,5 +1,12 @@
+/**
+ * @file Mounts the healthcare professional food-drug search route.
+ */
+
 import FoodSearchComponent from '../../components/FoodSearch';
 
+/**
+ * Renders food-drug search configured for HCP interaction data.
+ */
 const FoodSearchScreen = () => {
   return (
     <FoodSearchComponent

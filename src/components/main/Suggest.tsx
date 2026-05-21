@@ -1,20 +1,33 @@
+/**
+ * @file Provides the drug suggestion form submitted to Supabase.
+ */
+
+import { FontAwesome } from '@expo/vector-icons';
 import React, { useState } from 'react';
-import { View, Text, TextInput, StyleSheet, TouchableOpacity, Alert, Modal, FlatList } from 'react-native';
+import {
+  View,
+  Text,
+  TextInput,
+  StyleSheet,
+  TouchableOpacity,
+  Alert,
+  Modal,
+  FlatList,
+} from 'react-native';
+
 import supabase from '../../lib/supabase';
 import { useAuth } from '../../provider/AuthProvider';
-import { FontAwesome } from '@expo/vector-icons';
 
+/**
+ * Displays the drug suggestion form and submits it to Supabase.
+ */
 const Suggest = () => {
   const { user } = useAuth();
   const [query, setQuery] = useState('Drug Missing');
   const [description, setDescription] = useState('');
   const [modalVisible, setModalVisible] = useState(false);
 
-  const queryOptions = [
-    'Drug Missing',
-    'Required More Info',
-    'Other',
-  ];
+  const queryOptions = ['Drug Missing', 'Required More Info', 'Other'];
 
   const handleSubmit = async () => {
     if (description === '') {
@@ -41,17 +54,9 @@ const Suggest = () => {
       <Text style={styles.header}>Submit a Suggestion</Text>
 
       <Text style={styles.label}>Query</Text>
-      <TouchableOpacity
-        style={styles.dropdownButton}
-        onPress={() => setModalVisible(true)}
-      >
+      <TouchableOpacity style={styles.dropdownButton} onPress={() => setModalVisible(true)}>
         <Text style={styles.dropdownText}>{query}</Text>
-        <FontAwesome
-                name="chevron-right"
-                size={15}
-                color="black"
-                style={{ transform:'90deg' }}
-              />
+        <FontAwesome name="chevron-right" size={15} color="black" style={{ transform: '90deg' }} />
       </TouchableOpacity>
 
       {/* Modal for selecting query */}

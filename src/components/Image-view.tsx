@@ -1,12 +1,19 @@
+/**
+ * @file Provides a pinch-to-zoom image preview component for drug images.
+ */
+
 import React from 'react';
-import { View, StyleSheet, Image } from 'react-native';
+import { StyleSheet, Image } from 'react-native';
 import { GestureHandlerRootView, Gesture, GestureDetector } from 'react-native-gesture-handler';
-import Animated, { useSharedValue, useAnimatedStyle, withSpring, runOnJS } from 'react-native-reanimated';
+import Animated, { useSharedValue, useAnimatedStyle, withSpring } from 'react-native-reanimated';
 
 interface ZoomableImageProps {
   imageUrl: string;
 }
 
+/**
+ * Displays an image that can be zoomed with pinch gestures.
+ */
 const ZoomableImage: React.FC<ZoomableImageProps> = ({ imageUrl }) => {
   // Create a pinch gesture
   const pinchGesture = Gesture.Pinch();

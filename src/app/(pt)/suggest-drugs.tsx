@@ -1,9 +1,14 @@
-import { View, Text } from 'react-native'
-import React from 'react'
-import Suggest from '../../components/main/Suggest'
+/**
+ * @file Mounts the patient drug suggestion screen.
+ */
 
-const Suggestion= () => {
-  return <Suggest/>
-}
+import Suggest from '../../components/main/Suggest';
 
-export default Suggestion
+/**
+ * Renders the suggestion form inside the patient route group.
+ */
+const Suggestion = () => {
+  return <Suggest />;
+};
+
+export default Suggestion;
