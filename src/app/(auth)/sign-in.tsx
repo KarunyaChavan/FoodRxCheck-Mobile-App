@@ -30,7 +30,9 @@ const SignInScreen = () => {
       password,
     });
 
-    if (error) Alert.alert(error.message);
+    if (error) {
+      Alert.alert(error.message);
+    }
     setLoading(false);
   }
 

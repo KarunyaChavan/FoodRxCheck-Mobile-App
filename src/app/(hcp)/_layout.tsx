@@ -18,7 +18,7 @@ import {
 } from 'react-native';
 
 import { useAuth } from '../../provider/AuthProvider';
-import headerRight from '../../utils/headerRight';
+import SelectedDrugsButton from '../../utils/headerRight';
 
 /**
  * Renders protected HCP tabs and the custom More menu.
@@ -73,7 +73,7 @@ export default function HcpLayout() {
             headerStyle: {
               height: 70,
             },
-            headerRight: headerRight,
+            headerRight: () => <SelectedDrugsButton />,
             tabBarIcon: ({ color, size }) => <FontAwesome name="home" size={size} color={color} />,
           }}
         />

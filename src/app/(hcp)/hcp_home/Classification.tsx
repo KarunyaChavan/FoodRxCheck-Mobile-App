@@ -1,25 +1,18 @@
 /**
- * @file Lists drug classifications for healthcare professional browsing.
+ * @file Lists drug classifications for healthcare professional browsing using decoupled api layer.
  */
 
 import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
 import React from 'react';
-import {
-  View,
-  FlatList,
-  Text,
-  TouchableOpacity,
-  StyleSheet,
-  ActivityIndicator,
-} from 'react-native';
+import { View, FlatList, Text, TouchableOpacity, StyleSheet } from 'react-native';
 
-import supabase from '../../../lib/supabase';
-
-type Class = {
-  class_id: number;
-  class_name: string;
-};
+import ErrorView from '../../../components/ui/ErrorView';
+import LoadingState from '../../../components/ui/LoadingState';
+import Colors from '../../../constant/Colors';
+import { queryKeys } from '../../../constant/QueryKeys';
+import { fetchClasses } from '../../../services/api/drugs';
+import { DrugClass } from '../../../types/database.types';
 
 type ClassListProps = {
   filter: string;
@@ -34,24 +27,18 @@ const ClassList: React.FC<ClassListProps> = ({ filter }) => {
     data: Classes,
     isLoading,
     error,
-  } = useQuery<Class[]>({
-    queryKey: ['classes'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('classes')
-        .select('*')
-        .order('class_name', { ascending: true });
-      if (error) {
-        throw new Error(error.message);
-      }
-      return data;
-    },
+    refetch,
+  } = useQuery<DrugClass[]>({
+    queryKey: queryKeys.classes.all,
+    queryFn: fetchClasses,
   });
+
   if (isLoading) {
-    return <ActivityIndicator style={styles.loadingContainer} size="large" color="#000" />;
+    return <LoadingState />;
   }
+
   if (error) {
-    return <Text>Error: {error.message}</Text>;
+    return <ErrorView message={error.message} onRetry={refetch} />;
   }
 
   const filteredClasses = Classes?.filter((cls) =>
@@ -85,11 +72,12 @@ const ClassList: React.FC<ClassListProps> = ({ filter }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: Colors.light.background,
   },
   className: {
     fontSize: 18,
     fontWeight: 'bold',
+    color: Colors.light.text,
   },
   card: {
     elevation: 5,
@@ -97,22 +85,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     width: '90%',
     alignSelf: 'center',
-    backgroundColor: 'white',
+    backgroundColor: Colors.light.cardBackground,
     padding: 8,
     paddingVertical: 14,
     marginVertical: 6,
     borderRadius: 10,
-    shadowColor: '#000',
+    shadowColor: Colors.light.shadow,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 5,
     borderLeftWidth: 5,
-    borderLeftColor: '#0a7ea4',
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    borderLeftColor: Colors.light.primary,
   },
 });
 

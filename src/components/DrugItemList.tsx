@@ -96,7 +96,9 @@ const DrugListComponent: React.FC<DrugListProps> = ({ filter, usePaginatedDrugs,
           );
         }}
         onEndReached={() => {
-          if (hasNextPage) fetchNextPage();
+          if (hasNextPage) {
+            fetchNextPage();
+          }
         }}
         onEndReachedThreshold={0.5}
         ListFooterComponent={() =>

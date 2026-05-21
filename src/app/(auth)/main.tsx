@@ -27,11 +27,11 @@ const Main = () => {
         <Text style={styles.subtitle}>Find Your Drugs and Food Interactions</Text>
       </View>
       <TouchableOpacity style={styles.btn} onPress={() => setModalVisible(true)}>
-        <Text style={styles.btnText}>Let's Get Started</Text>
+        <Text style={styles.btnText}>Let&apos;s Get Started</Text>
       </TouchableOpacity>
 
       <View style={styles.footer}>
-        <Text style={styles.footerText}>Designed and Developed by P.E.S.'s MCOP and MCOE</Text>
+        <Text style={styles.footerText}>Designed and Developed by P.E.S.&apos;s MCOP and MCOE</Text>
       </View>
 
       {/* Modal for Role Selection */}

@@ -1,37 +1,30 @@
 /**
- * @file Displays selected drugs and compares their known interaction warnings.
+ * @file Displays selected drugs and compares their known interaction warnings using decoupled api layer.
  */
 
 import { FontAwesome } from '@expo/vector-icons';
 import { useQuery } from '@tanstack/react-query';
 import { useRouter, Stack } from 'expo-router';
 import React from 'react';
-import {
-  View,
-  Text,
-  ScrollView,
-  TouchableOpacity,
-  StyleSheet,
-  ActivityIndicator,
-} from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
 
-import supabase from '../../lib/supabase';
+import ErrorView from '../../components/ui/ErrorView';
+import LoadingState from '../../components/ui/LoadingState';
+import Colors from '../../constant/Colors';
+import { queryKeys } from '../../constant/QueryKeys';
 import { useAuth } from '../../provider/AuthProvider';
 import { useDrugs } from '../../provider/DrugsProvider';
+import { fetchDrugInteractions } from '../../services/api/interactions';
 
-const fetchInteractions = async (
+const getInteractionsMap = async (
   selectedDrugs: { drug_id: number; drug_name: string }[],
   isHcp: boolean,
 ) => {
   const interactionsMap: { [key: number]: { count: number; interactions: string[] } } = {};
 
   for (const drug of selectedDrugs) {
-    const { data, error } = await supabase
-      .from(isHcp ? 'interactions' : 'patient_interactions')
-      .select('*')
-      .eq('drug_id', drug.drug_id);
-
-    if (!error && data) {
+    try {
+      const data = await fetchDrugInteractions(drug.drug_id, isHcp);
       const validInteractions = data
         .map((item) => item.food)
         .filter((interaction) => interaction && interaction !== 'NA');
@@ -40,6 +33,9 @@ const fetchInteractions = async (
         count: validInteractions.length,
         interactions: validInteractions,
       };
+    } catch (error) {
+      console.error(`Error loading interactions for drug ${drug.drug_id}:`, error);
+      interactionsMap[drug.drug_id] = { count: 0, interactions: [] };
     }
   }
 
@@ -54,24 +50,24 @@ const SelectedDrugs = () => {
   const router = useRouter();
   const { isHcp, user } = useAuth();
   const keyUser = user?.id || 'patient';
-  const { data: interactionData, isLoading } = useQuery({
-    queryKey: ['selectedinteractions', keyUser],
-    queryFn: () => fetchInteractions(selectedDrugs, isHcp),
+
+  const {
+    data: interactionData,
+    isLoading,
+    error,
+    refetch,
+  } = useQuery({
+    queryKey: queryKeys.interactions.selected(keyUser),
+    queryFn: () => getInteractionsMap(selectedDrugs, isHcp),
     enabled: selectedDrugs.length > 0,
   });
 
   // Clear all selected drugs
-  /**
-   * Removes every selected drug from local comparison state.
-   */
   const clearAllDrugs = () => {
     selectedDrugs.forEach((drug) => onRemoveDrug(drug.drug_id));
   };
 
   // Navigate to DrugInteractionList page
-  /**
-   * Navigates to a selected drug's patient detail screen.
-   */
   const handleNavigate = (drug: { drug_id: any; drug_name: any }) => {
     const path = isHcp ? '/hcp_dynamic/drug-details/[id]' : '/patient_dynamic/int-drugs-pt/[id]';
 
@@ -82,7 +78,11 @@ const SelectedDrugs = () => {
   };
 
   if (isLoading) {
-    return <ActivityIndicator style={styles.loading} size="large" color="#0a7ea4" />;
+    return <LoadingState />;
+  }
+
+  if (error) {
+    return <ErrorView message={error.message} onRetry={refetch} />;
   }
 
   return (
@@ -90,7 +90,7 @@ const SelectedDrugs = () => {
       <Stack.Screen
         options={{
           headerTitle: 'Selected Drugs',
-          headerStyle: { backgroundColor: '#0a7ea4' },
+          headerStyle: { backgroundColor: Colors.light.primary },
           headerTintColor: '#fff',
         }}
       />
@@ -115,24 +115,11 @@ const SelectedDrugs = () => {
                   </Text>
 
                   {interactionCount > 0
-                    ? interactions.map(
-                        (
-                          interaction:
-                            | string
-                            | number
-                            | boolean
-                            | React.ReactElement<any, string | React.JSXElementConstructor<any>>
-                            | Iterable<React.ReactNode>
-                            | React.ReactPortal
-                            | null
-                            | undefined,
-                          index: React.Key | null | undefined,
-                        ) => (
-                          <Text key={index} style={styles.interactionText}>
-                            • {interaction}
-                          </Text>
-                        ),
-                      )
+                    ? interactions.map((interaction: string, index: number) => (
+                        <Text key={index} style={styles.interactionText}>
+                          • {interaction}
+                        </Text>
+                      ))
                     : null}
 
                   <View style={styles.buttonContainer}>
@@ -174,21 +161,16 @@ const SelectedDrugs = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: Colors.light.background,
     padding: 10,
   },
   scrollContainer: {
     paddingBottom: 20,
     flexGrow: 1,
   },
-  loading: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
   emptyMessage: {
     fontSize: 16,
-    color: '#888',
+    color: Colors.light.textSecondary,
     textAlign: 'center',
     marginTop: 20,
   },
@@ -198,8 +180,8 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     marginVertical: 6,
     borderWidth: 1,
-    borderColor: '#ddd',
-    shadowColor: '#000',
+    borderColor: Colors.light.border,
+    shadowColor: Colors.light.shadow,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 5,
@@ -212,25 +194,19 @@ const styles = StyleSheet.create({
   drugName: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#0a7ea4',
+    color: Colors.light.primary,
     marginTop: 5,
   },
   interactionSummary: {
     fontSize: 16,
-    color: '#333',
+    color: Colors.light.text,
     marginTop: 5,
     fontWeight: 'bold',
   },
   interactionText: {
     fontSize: 16,
-    color: '#333',
+    color: Colors.light.textSecondary,
     marginTop: 2,
-  },
-  noInteraction: {
-    fontSize: 14,
-    color: 'gray',
-    marginTop: 5,
-    fontStyle: 'italic',
   },
   buttonContainer: {
     flexDirection: 'row',
@@ -238,21 +214,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 10,
   },
-  detailsButton: {
-    backgroundColor: 'white',
-    padding: 8,
-    borderRadius: 5,
-    alignItems: 'center',
-    borderWidth: 2,
-    borderColor: '#0a7ea4',
-  },
   detailsButtonText: {
-    color: '#0a7ea4',
+    color: Colors.light.primary,
     fontSize: 14,
     fontWeight: 'bold',
   },
   clearButton: {
-    backgroundColor: '#0a7ea4',
+    backgroundColor: Colors.light.primary,
     padding: 10,
     borderRadius: 50,
     marginBottom: 10,

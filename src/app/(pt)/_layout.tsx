@@ -6,7 +6,7 @@ import FontAwesome from '@expo/vector-icons/FontAwesome';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { Tabs } from 'expo-router';
 
-import headerRight from '../../utils/headerRight';
+import SelectedDrugsButton from '../../utils/headerRight';
 
 /**
  * Renders patient navigation tabs for counselling, food search, and suggestions.
@@ -30,7 +30,7 @@ export default function PatientLayout() {
           headerStyle: {
             height: 70,
           },
-          headerRight: headerRight,
+          headerRight: () => <SelectedDrugsButton />,
 
           tabBarIcon: ({ color, size }) => <FontAwesome name="home" size={size} color={color} />,
         }}

@@ -1,37 +1,20 @@
 /**
- * @file Renders interaction detail cards for a selected drug.
+ * @file Renders interaction detail cards for a selected drug using decoupled api layer.
  */
 
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { useQuery } from '@tanstack/react-query';
 import { Stack, useLocalSearchParams } from 'expo-router';
 import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  ActivityIndicator,
-  FlatList,
-  StyleSheet,
-  TouchableOpacity,
-  Platform,
-} from 'react-native';
+import { View, Text, FlatList, StyleSheet, TouchableOpacity, Platform } from 'react-native';
 
-import supabase from '../lib/supabase';
+import ErrorView from '../components/ui/ErrorView';
+import LoadingState from '../components/ui/LoadingState';
+import Colors from '../constant/Colors';
+import { queryKeys } from '../constant/QueryKeys';
+import { fetchDrugInteractions } from '../services/api/interactions';
+import { Interaction } from '../types/database.types';
 import parseAndRenderText from '../utils/parsehttp';
-
-interface InteractionBase {
-  food: string;
-  management?: string;
-  counselling_tips?: string;
-  mechanism_of_action?: string;
-  severity?: string;
-  reference?: string;
-}
-
-interface Interaction extends InteractionBase {
-  drug_id: string;
-  isCounsellingTips?: boolean;
-}
 
 interface DrugInteractionListProps {
   tableName: 'interactions' | 'patient_interactions';
@@ -44,23 +27,24 @@ const DrugInteractionList: React.FC<DrugInteractionListProps> = ({ tableName }) 
   const { id, name } = useLocalSearchParams<{ id: string; name: string }>();
   const [expandedItems, setExpandedItems] = useState<{ [key: number]: boolean }>({});
 
-  // Fetch data
   const {
     data: drugDetails,
     isLoading,
     error,
+    refetch,
   } = useQuery<Interaction[]>({
-    queryKey: [tableName, id],
-    queryFn: async () => {
-      const { data, error } = await supabase.from(tableName).select('*').eq('drug_id', id);
-      if (error) throw new Error(error.message);
-      return data || [];
-    },
+    queryKey: queryKeys.interactions.byDrug(id!, tableName === 'interactions'),
+    queryFn: () => fetchDrugInteractions(id!, tableName === 'interactions'),
+    enabled: Boolean(id),
   });
 
-  if (isLoading)
-    return <ActivityIndicator style={styles.loadingContainer} size="large" color="#000" />;
-  if (error) return <Text>Error: {error.message}</Text>;
+  if (isLoading) {
+    return <LoadingState />;
+  }
+
+  if (error) {
+    return <ErrorView message={error.message} onRetry={refetch} />;
+  }
 
   /**
    * Toggles an interaction card between collapsed and expanded states.
@@ -79,7 +63,7 @@ const DrugInteractionList: React.FC<DrugInteractionListProps> = ({ tableName }) 
       ? [
           ...validDrugDetails,
           {
-            drug_id: id,
+            drug_id: id!,
             food: 'No Food Drug Interaction Available',
             counselling_tips: drugDetails[0]?.counselling_tips,
             isCounsellingTips: true,
@@ -107,7 +91,7 @@ const DrugInteractionList: React.FC<DrugInteractionListProps> = ({ tableName }) 
               <FontAwesome
                 name="chevron-right"
                 size={15}
-                color="black"
+                color={Colors.light.text}
                 style={{ transform: [{ rotate: isExpanded ? '90deg' : '0deg' }] }}
               />
             </TouchableOpacity>
@@ -155,7 +139,7 @@ const DrugInteractionList: React.FC<DrugInteractionListProps> = ({ tableName }) 
               <Text style={{ fontSize: 16, color: '#fff' }}>{name}</Text>
             </View>
           ),
-          headerStyle: { backgroundColor: '#0a7ea4' },
+          headerStyle: { backgroundColor: Colors.light.primary },
           headerTintColor: '#fff',
         }}
       />
@@ -183,45 +167,43 @@ const styles = StyleSheet.create({
     backgroundColor: '#f5f5f5',
     ...Platform.select({ ios: { marginTop: 38 } }),
   },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
   drugInfo: {
     padding: 20,
-    backgroundColor: '#fff',
+    backgroundColor: Colors.light.cardBackground,
     marginBottom: 10,
   },
   card: {
-    backgroundColor: '#fff',
+    backgroundColor: Colors.light.cardBackground,
     padding: 10,
     marginHorizontal: 20,
     marginVertical: 5,
     borderRadius: 10,
-    shadowColor: '#000',
+    shadowColor: Colors.light.shadow,
     shadowOffset: { width: 5, height: 5 },
     shadowOpacity: 0.8,
     shadowRadius: 10,
     elevation: 5,
-    borderColor: '#000',
+    borderColor: Colors.light.border,
   },
   cardTitle: {
     fontSize: 18,
     fontWeight: 'bold',
     marginBottom: 5,
+    color: Colors.light.text,
   },
   cardText: {
     fontSize: 16,
     marginBottom: 5,
+    color: Colors.light.textSecondary,
   },
   bold: {
     fontWeight: 'bold',
+    color: Colors.light.text,
   },
   expandedContent: {
     marginTop: 5,
     borderTopWidth: 1,
-    borderTopColor: 'black',
+    borderTopColor: Colors.light.border,
     paddingTop: 5,
   },
   touch: {

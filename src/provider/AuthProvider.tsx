@@ -1,5 +1,5 @@
 /**
- * @file Provides authentication state, profile lookup, and role flags.
+ * @file Provides authentication state, profile lookup, and role flags using decoupled api layer.
  */
 
 import { Session } from '@supabase/supabase-js';
@@ -13,12 +13,8 @@ import {
 } from 'react';
 
 import supabase from '../lib/supabase';
-
-type UserProfile = {
-  id: string;
-  role: string;
-  [key: string]: any;
-};
+import { fetchProfile } from '../services/api/auth';
+import { UserProfile } from '../types/database.types';
 
 type AuthData = {
   session: Session | null;
@@ -41,7 +37,6 @@ export default function AuthProvider({ children }: PropsWithChildren) {
     loading: true,
     user: null,
     isAdmin: false,
-
     isHcp: false,
     resetPending: false,
     setResetPending: () => {},
@@ -51,21 +46,14 @@ export default function AuthProvider({ children }: PropsWithChildren) {
     setAuthState((prev) => ({ ...prev, resetPending: value }));
   };
 
-  const fetchUserProfile = useCallback(
+  const loadUserProfile = useCallback(
     async (userId: string, session: Session | null = authState.session) => {
-      if (authState.resetPending) return; // Stop fetching profile if resetPending is true
+      if (authState.resetPending) {
+        return;
+      }
 
       try {
-        const { data, error } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', userId)
-          .single();
-
-        if (error) {
-          console.error('Error fetching user profile:', error);
-          return;
-        }
+        const data = await fetchProfile(userId);
 
         setAuthState((prev) => ({
           ...prev,
@@ -84,7 +72,9 @@ export default function AuthProvider({ children }: PropsWithChildren) {
   );
 
   useEffect(() => {
-    if (authState.resetPending) return; // Stop fetching session if resetPending is true
+    if (authState.resetPending) {
+      return;
+    }
 
     const fetchSession = async () => {
       const {
@@ -98,7 +88,7 @@ export default function AuthProvider({ children }: PropsWithChildren) {
       }
 
       if (session) {
-        await fetchUserProfile(session.user.id, session);
+        await loadUserProfile(session.user.id, session);
       } else {
         setAuthState((prev) => ({ ...prev, loading: false }));
       }
@@ -108,7 +98,7 @@ export default function AuthProvider({ children }: PropsWithChildren) {
 
     const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session) {
-        fetchUserProfile(session.user.id, session);
+        loadUserProfile(session.user.id, session);
       } else {
         setAuthState((prev) => ({
           session: null,
@@ -125,7 +115,7 @@ export default function AuthProvider({ children }: PropsWithChildren) {
     return () => {
       authListener.subscription.unsubscribe();
     };
-  }, [authState.resetPending, fetchUserProfile]);
+  }, [authState.resetPending, loadUserProfile]);
 
   return <AuthContext.Provider value={{ ...authState }}>{children}</AuthContext.Provider>;
 }

@@ -1,5 +1,5 @@
 /**
- * @file Shows patient-facing general instruction details and images.
+ * @file Shows patient-facing general instruction details and images using decoupled api layer.
  */
 
 import { useQuery } from '@tanstack/react-query';
@@ -8,24 +8,22 @@ import React, { useState } from 'react';
 import {
   View,
   Text,
-  ActivityIndicator,
   FlatList,
-  StyleSheet,
   TouchableOpacity,
   Image,
   Modal,
+  StyleSheet,
   Platform,
 } from 'react-native';
 
 import ZoomableImage from '@/components/Image-view';
 
-import supabase from '../../../lib/supabase';
-
-type Product = {
-  instructions: string;
-  references: string;
-  image_path: string;
-};
+import ErrorView from '../../../components/ui/ErrorView';
+import LoadingState from '../../../components/ui/LoadingState';
+import Colors from '../../../constant/Colors';
+import { queryKeys } from '../../../constant/QueryKeys';
+import { fetchGeneralInstructionDetail } from '../../../services/api/drugs';
+import { GeneralInstruction } from '../../../types/database.types';
 
 /**
  * Renders patient general-instruction details for a selected drug.
@@ -39,19 +37,11 @@ const DrugDetails: React.FC = () => {
     data: directionData,
     isLoading,
     error,
-  } = useQuery<Product>({
-    queryKey: ['instructions', id],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('general_instructions')
-        .select('*')
-        .eq('id', id)
-        .single();
-      if (error) {
-        throw new Error(error.message);
-      }
-      return data;
-    },
+    refetch,
+  } = useQuery<GeneralInstruction>({
+    queryKey: queryKeys.instructions.byDrug(id!),
+    queryFn: () => fetchGeneralInstructionDetail(id!),
+    enabled: Boolean(id),
   });
 
   /**
@@ -71,11 +61,11 @@ const DrugDetails: React.FC = () => {
   };
 
   if (isLoading) {
-    return <ActivityIndicator style={styles.loadingContainer} size="large" color="#000" />;
+    return <LoadingState />;
   }
 
   if (error) {
-    return <Text>Error: {error.message}</Text>;
+    return <ErrorView message={error.message} onRetry={refetch} />;
   }
 
   return (
@@ -84,7 +74,7 @@ const DrugDetails: React.FC = () => {
         options={{
           headerTransparent: false,
           title: 'General Instructions',
-          headerStyle: { backgroundColor: '#0a7ea4' },
+          headerStyle: { backgroundColor: Colors.light.primary },
           headerTintColor: '#fff',
         }}
       />
@@ -99,14 +89,14 @@ const DrugDetails: React.FC = () => {
             {item.image_path ? (
               <View>
                 <Text style={styles.cardsubTitle}>Image:</Text>
-                <TouchableOpacity onPress={() => openImageModal(item.image_path)}>
+                <TouchableOpacity onPress={() => openImageModal(item.image_path!)}>
                   <Image source={{ uri: item.image_path }} style={styles.imageThumbnail} />
                   <Text style={styles.tapText}>Tap to view full image</Text>
                 </TouchableOpacity>
               </View>
             ) : null}
             {item.instructions ? (
-              <View>
+              <View style={{ marginTop: item.image_path ? 15 : 0 }}>
                 <Text style={styles.cardsubTitle}>Instruction:</Text>
                 <Text style={styles.cardText}>{item.instructions}</Text>
               </View>
@@ -140,69 +130,60 @@ const styles = StyleSheet.create({
       },
     }),
   },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
   drugInfo: {
     padding: 20,
-    backgroundColor: '#fff',
+    backgroundColor: Colors.light.cardBackground,
     marginBottom: 10,
   },
   card: {
-    backgroundColor: '#fff',
-    padding: 10,
+    backgroundColor: Colors.light.cardBackground,
+    padding: 15,
     marginHorizontal: 20,
     marginVertical: 5,
     borderRadius: 10,
-    shadowColor: '#000',
+    shadowColor: Colors.light.shadow,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 5,
     elevation: 5,
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: Colors.light.border,
   },
   cardTitle: {
     fontSize: 18,
     fontWeight: 'bold',
     marginBottom: 5,
+    color: Colors.light.text,
   },
   cardText: {
     fontSize: 16,
     marginBottom: 5,
-    color: '#555',
+    color: Colors.light.textSecondary,
+    lineHeight: 22,
   },
   cardsubTitle: {
     fontSize: 16,
     fontWeight: 'bold',
     marginBottom: 5,
-    color: '#333',
+    color: Colors.light.text,
   },
   imageThumbnail: {
     width: '80%',
     height: 150,
     alignSelf: 'center',
+    borderRadius: 8,
   },
   tapText: {
     textAlign: 'center',
-    color: '#555',
+    color: Colors.light.textSecondary,
     marginTop: 5,
+    fontSize: 12,
   },
   modalContainer: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.9)',
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  scrollContainer: {
-    flex: 1,
-  },
-  fullImage: {
-    width: 300,
-    height: 400,
-    resizeMode: 'contain',
   },
   closeButton: {
     position: 'absolute',

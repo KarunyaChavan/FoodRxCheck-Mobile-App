@@ -1,28 +1,20 @@
 /**
- * @file Lists drugs belonging to a selected HCP subclass.
+ * @file Lists drugs belonging to a selected HCP subclass using decoupled api layer.
  */
 
 import { useQuery } from '@tanstack/react-query';
 import { useRouter, useLocalSearchParams, Stack, Redirect } from 'expo-router';
 import React, { useState } from 'react';
-import {
-  View,
-  FlatList,
-  Text,
-  TouchableOpacity,
-  StyleSheet,
-  ActivityIndicator,
-  Platform,
-} from 'react-native';
+import { View, FlatList, Text, TouchableOpacity, StyleSheet, Platform } from 'react-native';
 
 import SearchBar from '../../../components/Searchbar';
-import supabase from '../../../lib/supabase';
+import ErrorView from '../../../components/ui/ErrorView';
+import LoadingState from '../../../components/ui/LoadingState';
+import Colors from '../../../constant/Colors';
+import { queryKeys } from '../../../constant/QueryKeys';
 import { useAuth } from '../../../provider/AuthProvider';
-
-type Drug = {
-  drug_id: number;
-  drug_name: string;
-};
+import { fetchSubClassDrugs } from '../../../services/api/drugs';
+import { Drug } from '../../../types/database.types';
 
 /**
  * Lists all drugs for a selected subclass and routes to HCP details.
@@ -40,19 +32,10 @@ const DrugList = () => {
     data: drugs,
     isLoading,
     error,
+    refetch,
   } = useQuery<Drug[]>({
-    queryKey: ['drugs', sub_class_id],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('drugs')
-        .select('*')
-        .eq('subclass_id', sub_class_id)
-        .order('drug_name', { ascending: true });
-      if (error) {
-        throw new Error(error.message);
-      }
-      return data;
-    },
+    queryKey: queryKeys.drugs.bySubClass(sub_class_id!),
+    queryFn: () => fetchSubClassDrugs(sub_class_id!),
     enabled: Boolean(session && sub_class_id),
   });
 
@@ -61,10 +44,11 @@ const DrugList = () => {
   }
 
   if (isLoading) {
-    return <ActivityIndicator style={styles.loadingContainer} size="large" color="#000" />;
+    return <LoadingState />;
   }
+
   if (error) {
-    return <Text>Error: {error.message}</Text>;
+    return <ErrorView message={error.message} onRetry={refetch} />;
   }
 
   const filteredDrugs = drugs?.filter((drug) =>
@@ -77,7 +61,7 @@ const DrugList = () => {
         options={{
           headerTransparent: false,
           title: `SubClass : ${subclassname}`,
-          headerStyle: { backgroundColor: '#0a7ea4' },
+          headerStyle: { backgroundColor: Colors.light.primary },
           headerTintColor: '#fff',
           headerTitleStyle: { fontSize: 16 },
         }}
@@ -111,7 +95,7 @@ const DrugList = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: Colors.light.background,
     ...Platform.select({
       ios: {
         marginTop: 38,
@@ -122,14 +106,10 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingLeft: 10,
   },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
   drugName: {
     fontSize: 18,
     fontWeight: 'bold',
+    color: Colors.light.text,
   },
   card: {
     elevation: 5,
@@ -137,17 +117,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     width: '90%',
     alignSelf: 'center',
-    backgroundColor: 'white',
+    backgroundColor: Colors.light.cardBackground,
     padding: 8,
     paddingVertical: 14,
     marginVertical: 6,
     borderRadius: 10,
-    shadowColor: '#000',
+    shadowColor: Colors.light.shadow,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 5,
     borderLeftWidth: 5,
-    borderLeftColor: '#0a7ea4',
+    borderLeftColor: Colors.light.primary,
   },
 });
 

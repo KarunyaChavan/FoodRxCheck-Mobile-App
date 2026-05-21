@@ -1,5 +1,5 @@
 /**
- * @file Implements shared food-drug search across patient and HCP flows.
+ * @file Implements shared food-drug search across patient and HCP flows using decoupled api layer.
  */
 
 import { FontAwesome } from '@expo/vector-icons';
@@ -12,51 +12,22 @@ import {
   FlatList,
   Text,
   StyleSheet,
-  ActivityIndicator,
   TouchableOpacity,
   Animated,
 } from 'react-native';
 
-import supabase from '../lib/supabase';
+import ErrorView from '../components/ui/ErrorView';
+import LoadingState from '../components/ui/LoadingState';
+import Colors from '../constant/Colors';
+import { queryKeys } from '../constant/QueryKeys';
+import { fetchDrugsByFood } from '../services/api/interactions';
+import { Drug } from '../types/database.types';
 
-/**
- * Finds drugs that interact with the supplied food term.
- */
-const fetchDrugsByFood = async (food: string, interactionsTable: string, drugsTable: string) => {
-  if (!food.trim()) return [];
-
-  const { data: interactions, error: interactionsError } = await supabase
-    .from(interactionsTable)
-    .select('drug_id')
-    .ilike('food', `%${food.toLowerCase()}%`);
-
-  if (interactionsError) {
-    console.error('Error fetching interactions:', interactionsError);
-    throw new Error(interactionsError.message);
-  }
-
-  const drugIds = interactions.map((interaction) => interaction.drug_id);
-
-  if (drugIds.length === 0) return [];
-
-  const { data: drugs, error: drugsError } = await supabase
-    .from(drugsTable)
-    .select('drug_id, drug_name')
-    .in('drug_id', drugIds);
-
-  if (drugsError) {
-    console.error('Error fetching drugs:', drugsError);
-    throw new Error(drugsError.message);
-  }
-
-  return drugs;
-};
 
 interface FoodSearchProps {
   placeholder: string;
   routePath: string;
-  interactionsTable: string;
-  drugsTable: string;
+  isHcp: boolean;
 }
 
 /**
@@ -65,8 +36,7 @@ interface FoodSearchProps {
 const FoodSearchComponent: React.FC<FoodSearchProps> = ({
   placeholder,
   routePath,
-  interactionsTable,
-  drugsTable,
+  isHcp,
 }) => {
   const router = useRouter();
   const [searchTerm, setSearchTerm] = useState('');
@@ -76,9 +46,9 @@ const FoodSearchComponent: React.FC<FoodSearchProps> = ({
     isLoading,
     error,
     refetch,
-  } = useQuery({
-    queryKey: [`searchDrugs-${interactionsTable}-${drugsTable}`, searchTerm],
-    queryFn: () => fetchDrugsByFood(searchTerm, interactionsTable, drugsTable),
+  } = useQuery<Drug[]>({
+    queryKey: queryKeys.drugs.search(searchTerm, isHcp),
+    queryFn: () => fetchDrugsByFood(searchTerm, isHcp),
     enabled: false, // Only fetch on button press
   });
 
@@ -152,9 +122,9 @@ const FoodSearchComponent: React.FC<FoodSearchProps> = ({
         </View>
       )}
 
-      {isLoading && <ActivityIndicator size="large" color="#0a7ea4" style={{ marginTop: 20 }} />}
+      {isLoading && <LoadingState />}
 
-      {error && <Text style={styles.errorText}>Error: {error.message}</Text>}
+      {error && <ErrorView message={error.message} onRetry={refetch} />}
 
       {drugs && drugs.length === 0 && !isLoading && !error && searchTerm && (
         <Text style={styles.noResultsText}>No Drugs Found</Text>
@@ -193,12 +163,12 @@ const styles = StyleSheet.create({
   },
   searchContainer: {
     flexDirection: 'row',
-    backgroundColor: 'white',
+    backgroundColor: Colors.light.cardBackground,
     borderRadius: 10,
     paddingHorizontal: 10,
     alignItems: 'center',
     elevation: 4,
-    shadowColor: '#000',
+    shadowColor: Colors.light.shadow,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 4,
@@ -207,10 +177,10 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 16,
     paddingVertical: 12,
-    color: '#333',
+    color: Colors.light.text,
   },
   searchButton: {
-    backgroundColor: '#0a7ea4',
+    backgroundColor: Colors.light.primary,
     padding: 5,
     borderRadius: 8,
   },
@@ -221,39 +191,34 @@ const styles = StyleSheet.create({
     marginLeft: 10,
   },
   card: {
-    backgroundColor: 'white',
+    backgroundColor: Colors.light.cardBackground,
     padding: 12,
     marginVertical: 6,
     borderRadius: 10,
-    shadowColor: '#000',
+    shadowColor: Colors.light.shadow,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 5,
     elevation: 5,
     borderLeftWidth: 5,
-    borderLeftColor: '#0a7ea4',
+    borderLeftColor: Colors.light.primary,
   },
   drugName: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#333',
-  },
-  errorText: {
-    color: 'red',
-    textAlign: 'center',
-    marginTop: 10,
+    color: Colors.light.text,
   },
   instructionsText: {
     textAlign: 'center',
     fontSize: 16,
-    color: '#888',
+    color: Colors.light.textSecondary,
     marginTop: 8,
     marginHorizontal: 10,
   },
   noResultsText: {
     textAlign: 'center',
     fontSize: 16,
-    color: '#888',
+    color: Colors.light.textSecondary,
     marginTop: 20,
   },
 });
