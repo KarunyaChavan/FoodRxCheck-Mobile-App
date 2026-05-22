@@ -3,7 +3,7 @@
  * Adheres strictly to SOLID design principles.
  */
 
-import supabase from '../../lib/supabase';
+import supabase from '../../lib/supabase-service';
 import { UserProfile } from '../../types/database.types';
 
 /**

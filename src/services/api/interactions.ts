@@ -2,7 +2,7 @@
  * @file Service layer for food-drug interaction queries and comparison logic.
  */
 
-import supabase from '../../lib/supabase';
+import supabase from '../../lib/supabase-service';
 import { Interaction, Drug } from '../../types/database.types';
 
 /**

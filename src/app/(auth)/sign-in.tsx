@@ -9,7 +9,7 @@ import { View, Text, Alert, TextInput, StyleSheet, TouchableOpacity } from 'reac
 
 import Button from '../../components/Button';
 import Colors from '../../constant/Colors';
-import supabase from '../../lib/supabase';
+import supabase from '../../lib/supabase-service';
 
 /**
  * Displays the HCP login form and navigation to password reset/sign-up flows.

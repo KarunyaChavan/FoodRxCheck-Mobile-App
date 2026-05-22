@@ -12,7 +12,7 @@ import {
   useState,
 } from 'react';
 
-import supabase from '../lib/supabase';
+import supabase from '../lib/supabase-service';
 import { fetchProfile } from '../services/api/auth';
 import { UserProfile } from '../types/database.types';
 
