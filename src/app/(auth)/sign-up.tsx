@@ -19,7 +19,7 @@ import {
 } from 'react-native';
 
 import Button from '../../components/Button';
-import supabase from '../../lib/supabase';
+import supabase from '../../lib/supabase-service';
 
 /**
  * Displays the HCP sign-up form and validates account/profile inputs.

@@ -100,3 +100,18 @@ Make sure you have the following installed on your machine:
    * **Android:** Run `npm run android` to launch in an Android Emulator or connected device.
    * **iOS:** Run `npm run ios` to launch in the iOS Simulator (requires macOS and Xcode).
 
+### Environment Variables
+
+Copy [`.env.example`](.env.example) to `.env` and set your Supabase public variables locally:
+
+```bash
+EXPO_PUBLIC_SUPABASE_URL=https://your-project-ref.supabase.co
+EXPO_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+```
+
+For CI and EAS builds, set the same values as secrets or environment variables in your pipeline so they are injected at build time without hardcoding them in the app.
+
+### Offline Data Cache
+
+The app persists TanStack Query responses to `AsyncStorage` so frequently used data can be restored faster and remain available offline for a limited period.
+

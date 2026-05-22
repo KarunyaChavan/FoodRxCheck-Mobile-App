@@ -2,7 +2,7 @@
  * @file Service layer for drug database suggestions and user feedback forms.
  */
 
-import supabase from '../../lib/supabase';
+import supabase from '../../lib/supabase-service';
 
 type SuggestionPayload = {
   name?: string | null;

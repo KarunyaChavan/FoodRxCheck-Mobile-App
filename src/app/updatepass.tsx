@@ -7,7 +7,7 @@ import React, { useState } from 'react';
 import { View, Text, Alert, TextInput, StyleSheet } from 'react-native';
 
 import Button from '../components/Button';
-import supabase from '../lib/supabase';
+import supabase from '../lib/supabase-service';
 import { useAuth } from '../provider/AuthProvider';
 
 /**

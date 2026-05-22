@@ -2,7 +2,7 @@
  * @file Service layer for drug catalog, classification, and general instructions database queries.
  */
 
-import supabase from '../../lib/supabase';
+import supabase from '../../lib/supabase-service';
 import {
   DrugClass,
   SubClass,

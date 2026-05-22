@@ -6,7 +6,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import React, { useCallback, useRef } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Animated, Easing } from 'react-native';
 
-import supabase from '../../lib/supabase';
+import supabase from '../../lib/supabase-service';
 import { useAuth } from '../../provider/AuthProvider';
 
 /**
