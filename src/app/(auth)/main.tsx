@@ -5,7 +5,7 @@
 
 import { Stack, useRouter } from 'expo-router';
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image, Modal } from 'react-native';
+import { View, Text, StyleSheet, Image, Modal, Pressable } from 'react-native';
 
 /**
  * Displays the app entry experience and routes users by selected role.
@@ -18,7 +18,7 @@ const Main = () => {
     <View style={styles.container}>
       <Stack.Screen options={{ headerTransparent: true, headerTitle: '' }} />
       <View style={styles.contentWrapper}>
-        <Image source={require('../../assets/images/drugSpecs.png')} style={styles.image} />
+        <Image source={require('../../assets/images/drugSpecs.png')} style={styles.image} resizeMode="contain" />
         <Text style={styles.title}>
           Your Ultimate
           <Text style={{ color: '#0a7ea4' }}> Drug Interaction </Text>
@@ -26,9 +26,9 @@ const Main = () => {
         </Text>
         <Text style={styles.subtitle}>Find Your Drugs and Food Interactions</Text>
       </View>
-      <TouchableOpacity style={styles.btn} onPress={() => setModalVisible(true)}>
+      <Pressable style={styles.btn} onPress={() => setModalVisible(true)}>
         <Text style={styles.btnText}>Let&apos;s Get Started</Text>
-      </TouchableOpacity>
+      </Pressable>
 
       <View style={styles.footer}>
         <Text style={styles.footerText}>Designed and Developed by P.E.S.&apos;s MCOP and MCOE</Text>
@@ -44,7 +44,7 @@ const Main = () => {
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>Continue As</Text>
-            <TouchableOpacity
+            <Pressable
               style={styles.optionBtn}
               onPress={() => {
                 setModalVisible(false);
@@ -52,8 +52,8 @@ const Main = () => {
               }}
             >
               <Text style={styles.optionText}>Patient</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
+            </Pressable>
+            <Pressable
               style={styles.optionBtn}
               onPress={() => {
                 setModalVisible(false);
@@ -61,10 +61,10 @@ const Main = () => {
               }}
             >
               <Text style={styles.optionText}>Healthcare Professional</Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => setModalVisible(false)}>
+            </Pressable>
+            <Pressable onPress={() => setModalVisible(false)}>
               <Text style={styles.cancelText}>Cancel</Text>
-            </TouchableOpacity>
+            </Pressable>
           </View>
         </View>
       </Modal>
@@ -88,7 +88,6 @@ const styles = StyleSheet.create({
   image: {
     width: 270,
     height: 200,
-    resizeMode: 'contain',
     marginBottom: 20,
   },
   title: {

@@ -6,14 +6,13 @@ import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { useQuery } from '@tanstack/react-query';
 import { Stack, useLocalSearchParams } from 'expo-router';
 import React, { useState } from 'react';
-import { View, Text, FlatList, StyleSheet, TouchableOpacity, Platform } from 'react-native';
+import { View, Text, FlatList, StyleSheet, Pressable, Platform } from 'react-native';
 
-import ErrorView from '../components/ui/ErrorView';
-import LoadingState from '../components/ui/LoadingState';
 import Colors from '../constant/Colors';
 import { queryKeys } from '../constant/QueryKeys';
 import { fetchDrugInteractions } from '../services/api/interactions';
 import { Interaction } from '../types/database.types';
+import FdaSummarySection from '../components/ui/FdaSummarySection';
 import parseAndRenderText from '../utils/parsehttp';
 
 interface DrugInteractionListProps {
@@ -27,24 +26,15 @@ const DrugInteractionList: React.FC<DrugInteractionListProps> = ({ tableName }) 
   const { id, name } = useLocalSearchParams<{ id: string; name: string }>();
   const [expandedItems, setExpandedItems] = useState<{ [key: number]: boolean }>({});
 
-  const {
-    data: drugDetails,
-    isLoading,
-    error,
-    refetch,
-  } = useQuery<Interaction[]>({
+  const { data: drugDetails } = useQuery<Interaction[]>({
     queryKey: queryKeys.interactions.byDrug(id!, tableName === 'interactions'),
     queryFn: () => fetchDrugInteractions(id!, tableName === 'interactions'),
     enabled: Boolean(id),
   });
 
-  if (isLoading) {
-    return <LoadingState />;
-  }
-
-  if (error) {
-    return <ErrorView message={error.message} onRetry={refetch} />;
-  }
+  // Compute filtered interactions early so hooks are always called in the same order.
+  const validDrugDetails = drugDetails?.filter((item) => item.food !== 'NA') || [];
+  const hasValidInteractions = validDrugDetails.length > 0;
 
   /**
    * Toggles an interaction card between collapsed and expanded states.
@@ -52,10 +42,6 @@ const DrugInteractionList: React.FC<DrugInteractionListProps> = ({ tableName }) 
   const toggleExpansion = (index: number) => {
     setExpandedItems((prev) => ({ ...prev, [index]: !prev[index] }));
   };
-
-  // Filter valid food interactions
-  const validDrugDetails = drugDetails?.filter((item) => item.food !== 'NA') || [];
-  const hasValidInteractions = validDrugDetails.length > 0;
 
   // Include counselling tips even when food interactions are 'NA'
   const dataWithCounsellingTips =
@@ -86,7 +72,7 @@ const DrugInteractionList: React.FC<DrugInteractionListProps> = ({ tableName }) 
           </>
         ) : (
           <>
-            <TouchableOpacity style={styles.touch} onPress={() => toggleExpansion(index)}>
+            <Pressable style={styles.touch} onPress={() => toggleExpansion(index)}>
               <Text style={styles.cardTitle}>{item.food}</Text>
               <FontAwesome
                 name="chevron-right"
@@ -94,7 +80,7 @@ const DrugInteractionList: React.FC<DrugInteractionListProps> = ({ tableName }) 
                 color={Colors.light.text}
                 style={{ transform: [{ rotate: isExpanded ? '90deg' : '0deg' }] }}
               />
-            </TouchableOpacity>
+            </Pressable>
 
             {isExpanded && (
               <View style={styles.expandedContent}>
@@ -150,6 +136,7 @@ const DrugInteractionList: React.FC<DrugInteractionListProps> = ({ tableName }) 
             ? `${validDrugDetails.length} Food Interaction${validDrugDetails.length !== 1 ? 's' : ''}`
             : 'No Food Drug Interaction Available'}
         </Text>
+        <FdaSummarySection queryText={name ?? id ?? ''} />
       </View>
 
       <FlatList
@@ -157,6 +144,7 @@ const DrugInteractionList: React.FC<DrugInteractionListProps> = ({ tableName }) 
         keyExtractor={(item, index) => `${item.drug_id}-${item.food}-${index}`}
         renderItem={renderInteractionItem}
       />
+
     </View>
   );
 };
@@ -178,11 +166,18 @@ const styles = StyleSheet.create({
     marginHorizontal: 20,
     marginVertical: 5,
     borderRadius: 10,
-    shadowColor: Colors.light.shadow,
-    shadowOffset: { width: 5, height: 5 },
-    shadowOpacity: 0.8,
-    shadowRadius: 10,
-    elevation: 5,
+    ...Platform.select({
+      web: {
+        boxShadow: '0px 5px 16px rgba(15, 23, 42, 0.18)',
+      },
+      default: {
+        shadowColor: Colors.light.shadow,
+        shadowOffset: { width: 5, height: 5 },
+        shadowOpacity: 0.8,
+        shadowRadius: 10,
+        elevation: 5,
+      },
+    }),
     borderColor: Colors.light.border,
   },
   cardTitle: {

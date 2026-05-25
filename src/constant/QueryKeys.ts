@@ -23,4 +23,8 @@ export const queryKeys = {
     all: ['general_instructions'] as const,
     byDrug: (drugId: string | number) => ['instructions', drugId] as const,
   },
+  // External medicine data sources (openFDA, etc.)
+  medicineSources: {
+    openFdaLabel: (query: string) => ['external', 'openfda', 'label', query] as const,
+  },
 };

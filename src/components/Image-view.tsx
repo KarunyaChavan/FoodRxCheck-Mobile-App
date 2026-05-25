@@ -38,7 +38,7 @@ const ZoomableImage: React.FC<ZoomableImageProps> = ({ imageUrl }) => {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <GestureDetector gesture={pinchGesture}>
         <Animated.View style={[styles.imageContainer, animatedStyle]}>
-          <Image source={{ uri: imageUrl }} style={styles.image} />
+          <Image source={{ uri: imageUrl }} style={styles.image} resizeMode="contain" />
         </Animated.View>
       </GestureDetector>
     </GestureHandlerRootView>
@@ -55,7 +55,6 @@ const styles = StyleSheet.create({
   image: {
     width: 300,
     height: 300,
-    resizeMode: 'contain',
   },
 });
 
