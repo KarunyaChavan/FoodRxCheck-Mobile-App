@@ -103,20 +103,23 @@ const SubClassList = () => {
       ) : (
         <FlatList
           data={filteredSubClasses}
-          keyExtractor={(item) => item.sub_class_id.toString()}
-          renderItem={({ item }) => (
-            <TouchableOpacity
-              style={styles.card}
-              onPress={() =>
-                router.push({
-                  pathname: `/hcp_dynamic/drugs/[sub_class_id]`,
-                  params: { sub_class_id: item.sub_class_id.toString(), subclassname: item.name },
-                })
-              }
-            >
-              <Text style={styles.subClassName}>{item.name}</Text>
-            </TouchableOpacity>
-          )}
+          keyExtractor={(item, index) => String(item.subclass_id ?? index)}
+          renderItem={({ item }) => {
+            const id = item.subclass_id;
+            const handlePress = () => {
+                if (id === null || id === undefined) {return;}
+              router.push({
+                pathname: `/hcp_dynamic/drugs/[subclass_id]`,
+                params: { subclass_id: String(id), subclassname: item.name },
+              });
+            };
+
+            return (
+              <TouchableOpacity style={styles.card} onPress={handlePress}>
+                <Text style={styles.subClassName}>{item.name}</Text>
+              </TouchableOpacity>
+            );
+          }}
         />
       )}
     </View>

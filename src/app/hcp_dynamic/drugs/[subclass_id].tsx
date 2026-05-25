@@ -22,8 +22,8 @@ import { Drug } from '../../../types/database.types';
 const DrugList = () => {
   const { session } = useAuth();
   const router = useRouter();
-  const { sub_class_id, subclassname } = useLocalSearchParams<{
-    sub_class_id: string;
+  const { subclass_id, subclassname } = useLocalSearchParams<{
+    subclass_id: string;
     subclassname: string;
   }>();
   const [filter, setFilter] = useState<string>('');
@@ -34,9 +34,9 @@ const DrugList = () => {
     error,
     refetch,
   } = useQuery<Drug[]>({
-    queryKey: queryKeys.drugs.bySubClass(sub_class_id!),
-    queryFn: () => fetchSubClassDrugs(sub_class_id!),
-    enabled: Boolean(session && sub_class_id),
+    queryKey: queryKeys.drugs.bySubClass(subclass_id!),
+    queryFn: () => fetchSubClassDrugs(subclass_id!),
+    enabled: Boolean(session && subclass_id),
   });
 
   if (!session) {

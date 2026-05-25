@@ -40,7 +40,7 @@ export default function RootLayout() {
             <Stack.Screen name="(pt)" options={{ headerShown: false }} />
             <Stack.Screen name="(hcp)" options={{ headerShown: false }} />
             <Stack.Screen name="hcp_dynamic/drug-details/[id]" options={{ headerShown: true }} />
-            <Stack.Screen name="hcp_dynamic/drugs/[sub_class_id]" options={{ headerShown: true }} />
+            <Stack.Screen name="hcp_dynamic/drugs/[subclass_id]" options={{ headerShown: true }} />
             <Stack.Screen
               name="hcp_dynamic/sub-classes/[class_id]"
               options={{ headerShown: true }}

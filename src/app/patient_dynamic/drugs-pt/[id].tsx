@@ -24,7 +24,6 @@ import Colors from '../../../constant/Colors';
 import { queryKeys } from '../../../constant/QueryKeys';
 import { fetchGeneralInstructionDetail } from '../../../services/api/drugs';
 import { GeneralInstruction } from '../../../types/database.types';
-import FdaSummarySection from '../../../components/ui/FdaSummarySection';
 
 /**
  * Renders patient general-instruction details for a selected drug.
@@ -104,7 +103,7 @@ const DrugDetails: React.FC = () => {
             ) : null}
           </View>
         )}
-        ListFooterComponent={<FdaSummarySection queryText={name ?? id ?? ''} />}
+      
       />
 
       {/* Modal for Fullscreen Image */}

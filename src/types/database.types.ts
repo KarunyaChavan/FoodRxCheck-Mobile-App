@@ -20,7 +20,7 @@ export interface DrugClass {
 }
 
 export interface SubClass {
-  sub_class_id: number;
+  subclass_id: number;
   name: string;
   class_id: number;
 }
@@ -29,7 +29,7 @@ export interface Drug {
   drug_id: number;
   drug_name: string;
   class_id?: number;
-  sub_class_id?: number;
+  subclass_id?: number;
 }
 
 export interface PatientDrug {

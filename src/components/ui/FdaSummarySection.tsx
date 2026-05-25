@@ -3,13 +3,14 @@
  */
 
 import FontAwesome from '@expo/vector-icons/FontAwesome';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import React, { useEffect, useRef, useState } from 'react';
-import { Modal, Pressable, ScrollView, StyleSheet, Text, View, Platform } from 'react-native';
+import { ActivityIndicator, Modal, Pressable, ScrollView, StyleSheet, Text, View, Platform } from 'react-native';
 
 import Colors from '../../constant/Colors';
 import { queryKeys } from '../../constant/QueryKeys';
-import { ExternalMedicineSummary, fetchOpenFdaLabelSummary } from '../../services/api/medicine-sources';
+import { ExternalMedicineSummary } from '../../services/api/summary-normalizers';
+import { resolveFdaLabelSummary } from '../../services/api/external-summaries';
 
 interface FdaSummarySectionProps {
   queryText?: string;
@@ -29,18 +30,42 @@ const FdaSummarySection: React.FC<FdaSummarySectionProps> = ({
   const [visible, setVisible] = useState(false);
   const triggerRef = useRef<any>(null);
   const closeButtonRef = useRef<any>(null);
+  const queryClient = useQueryClient();
+  const queryEnabled = Boolean(queryText);
 
-  const { data: summary } = useQuery<ExternalMedicineSummary | null>({
+  useEffect(() => {
+    if (!queryText) {
+      return;
+    }
+
+    queryClient.removeQueries({
+      queryKey: ['external', 'openfda', 'label'],
+      exact: false,
+    });
+  }, [queryClient, queryText]);
+
+  const { data: summary, isPending } = useQuery<ExternalMedicineSummary | null>({
     queryKey: queryText ? queryKeys.medicineSources.openFdaLabel(queryText) : ['external', 'openfda', 'label', ''],
-    queryFn: () => fetchOpenFdaLabelSummary(queryText ?? ''),
-    enabled: Boolean(queryText),
-    staleTime: 1000 * 60 * 60,
+    queryFn: async () => {
+      if (!queryText) {
+        return null;
+      }
+
+      const trimmed = queryText.trim();
+      const isNumericId = /^\d+$/.test(trimmed);
+
+      return resolveFdaLabelSummary(
+        isNumericId ? { supabaseDrugId: trimmed } : { drugName: trimmed },
+      );
+    },
+    enabled: queryEnabled,
+    staleTime: 0,
+    refetchOnMount: 'always',
+    refetchOnWindowFocus: false,
   });
 
-  if (!summary) {
-    return null;
-  }
-
+  const isLoading = queryEnabled && isPending;
+  const hasSummary = Boolean(summary);
   const openModal = () => {
     setVisible(true);
   };
@@ -70,86 +95,103 @@ const FdaSummarySection: React.FC<FdaSummarySectionProps> = ({
     return () => window.cancelAnimationFrame(frame);
   }, [visible]);
 
+  if (!queryText) {
+    return null;
+  }
+
   return (
     <>
-      <Pressable ref={triggerRef} onPress={openModal} hitSlop={8} accessibilityRole="button">
-        <Text style={styles.linkText}>{triggerLabel}</Text>
-      </Pressable>
+      {isLoading ? (
+        <View style={styles.loadingRow} accessible accessibilityLabel="Loading FDA info">
+          <ActivityIndicator size="small" color={Colors.light.textSecondary} />
+          <Text style={styles.mutedText}>Loading FDA info…</Text>
+        </View>
+      ) : null}
 
-      <Modal
-        visible={visible}
-        transparent
-        animationType="fade"
-        onRequestClose={closeModal}
-        statusBarTranslucent
-        accessibilityViewIsModal
-        presentationStyle="overFullScreen"
-      >
-        <View style={styles.modalRoot}>
-          <Pressable style={styles.backdrop} onPress={closeModal} accessibilityRole="button" />
-          <View style={styles.card} accessible accessibilityLabel={title}>
-            <View style={styles.header}>
-              <View style={styles.headerTextWrap}>
-                <Text style={styles.title}>{title}</Text>
-                {queryText ? <Text style={styles.subTitle}>{queryText}</Text> : null}
+      {!isLoading && hasSummary ? (
+        <Pressable ref={triggerRef} onPress={openModal} hitSlop={8} accessibilityRole="button">
+          <Text style={styles.linkText}>{triggerLabel}</Text>
+        </Pressable>
+      ) : !isLoading ? (
+        <Text style={styles.mutedText}>No FDA info available</Text>
+      ) : null}
+
+      {!isLoading && hasSummary ? (
+        <Modal
+          visible={visible}
+          transparent
+          animationType="fade"
+          onRequestClose={closeModal}
+          statusBarTranslucent
+          accessibilityViewIsModal
+          presentationStyle="overFullScreen"
+        >
+          <View style={styles.modalRoot}>
+            <Pressable style={styles.backdrop} onPress={closeModal} accessibilityRole="button" />
+            <View style={styles.card} accessible accessibilityLabel={title}>
+              <View style={styles.header}>
+                <View style={styles.headerTextWrap}>
+                  <Text style={styles.title}>{title}</Text>
+                  {queryText ? <Text style={styles.subTitle}>{queryText}</Text> : null}
+                </View>
+
+                <Pressable
+                  ref={closeButtonRef}
+                  onPress={closeModal}
+                  style={styles.closeButton}
+                  accessibilityRole="button"
+                  accessibilityLabel="Close FDA label summary"
+                >
+                  <FontAwesome name="close" size={16} color={Colors.light.text} />
+                </Pressable>
               </View>
 
-              <Pressable
-                ref={closeButtonRef}
-                onPress={closeModal}
-                style={styles.closeButton}
-                accessibilityRole="button"
-                accessibilityLabel="Close FDA label summary"
-              >
-                <FontAwesome name="close" size={16} color={Colors.light.text} />
-              </Pressable>
+              <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.body}>
+                {summary?.brandNames?.length ? (
+                  <Text style={styles.bodyText}>
+                    <Text style={styles.bold}>Brands:</Text> {summary.brandNames.join(', ')}
+                  </Text>
+                ) : null}
+                {summary?.genericNames?.length ? (
+                  <Text style={styles.bodyText}>
+                    <Text style={styles.bold}>Generics:</Text> {summary.genericNames.join(', ')}
+                  </Text>
+                ) : null}
+                {summary?.indications ? (
+                  <Text style={styles.bodyText}>
+                    <Text style={styles.bold}>Indications:</Text> {summary.indications}
+                  </Text>
+                ) : null}
+                {summary?.warnings ? (
+                  <Text style={styles.bodyText}>
+                    <Text style={styles.bold}>Warnings:</Text> {summary.warnings}
+                  </Text>
+                ) : null}
+                {summary?.dosage ? (
+                  <Text style={styles.bodyText}>
+                    <Text style={styles.bold}>Dosage:</Text> {summary.dosage}
+                  </Text>
+                ) : null}
+                {summary?.contraindications ? (
+                  <Text style={styles.bodyText}>
+                    <Text style={styles.bold}>Contraindications:</Text> {summary.contraindications}
+                  </Text>
+                ) : null}
+                {summary?.boxedWarning ? (
+                  <Text style={styles.bodyText}>
+                    <Text style={styles.bold}>Boxed warning:</Text> {summary.boxedWarning}
+                  </Text>
+                ) : null}
+                {summary?.adverseReactions ? (
+                  <Text style={styles.bodyText}>
+                    <Text style={styles.bold}>Adverse reactions:</Text> {summary.adverseReactions}
+                  </Text>
+                ) : null}
+              </ScrollView>
             </View>
-
-            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.body}>
-              {summary.brandNames?.length ? (
-                <Text style={styles.bodyText}>
-                  <Text style={styles.bold}>Brands:</Text> {summary.brandNames.join(', ')}
-                </Text>
-              ) : null}
-              {summary.genericNames?.length ? (
-                <Text style={styles.bodyText}>
-                  <Text style={styles.bold}>Generics:</Text> {summary.genericNames.join(', ')}
-                </Text>
-              ) : null}
-              {summary.indications ? (
-                <Text style={styles.bodyText}>
-                  <Text style={styles.bold}>Indications:</Text> {summary.indications}
-                </Text>
-              ) : null}
-              {summary.warnings ? (
-                <Text style={styles.bodyText}>
-                  <Text style={styles.bold}>Warnings:</Text> {summary.warnings}
-                </Text>
-              ) : null}
-              {summary.dosage ? (
-                <Text style={styles.bodyText}>
-                  <Text style={styles.bold}>Dosage:</Text> {summary.dosage}
-                </Text>
-              ) : null}
-              {summary.contraindications ? (
-                <Text style={styles.bodyText}>
-                  <Text style={styles.bold}>Contraindications:</Text> {summary.contraindications}
-                </Text>
-              ) : null}
-              {summary.boxedWarning ? (
-                <Text style={styles.bodyText}>
-                  <Text style={styles.bold}>Boxed warning:</Text> {summary.boxedWarning}
-                </Text>
-              ) : null}
-              {summary.adverseReactions ? (
-                <Text style={styles.bodyText}>
-                  <Text style={styles.bold}>Adverse reactions:</Text> {summary.adverseReactions}
-                </Text>
-              ) : null}
-            </ScrollView>
           </View>
-        </View>
-      </Modal>
+        </Modal>
+      ) : null}
     </>
   );
 };
@@ -161,6 +203,19 @@ const styles = StyleSheet.create({
     marginTop: 6,
     textDecorationLine: 'underline',
     fontWeight: '600',
+  },
+  mutedText: {
+    fontSize: 13,
+    color: Colors.light.textSecondary,
+    marginTop: 6,
+    fontWeight: '500',
+  },
+  loadingRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginTop: 6,
+    minHeight: 20,
   },
   backdrop: {
     position: 'absolute',

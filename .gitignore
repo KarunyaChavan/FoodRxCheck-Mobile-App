@@ -39,3 +39,6 @@ Thumbs.db
 
 expo-env.d.ts
 # @end expo-cli
+
+# Script logs
+scripts/logs/

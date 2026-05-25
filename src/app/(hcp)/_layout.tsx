@@ -8,14 +8,7 @@ import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { useFocusEffect } from '@react-navigation/native';
 import { Tabs, Redirect, useRouter } from 'expo-router';
 import React, { useState, useCallback } from 'react';
-import {
-  Text,
-  Modal,
-  TouchableOpacity,
-  StyleSheet,
-  Pressable,
-  TouchableOpacityProps,
-} from 'react-native';
+import { Text, Modal, TouchableOpacity, StyleSheet, Pressable } from 'react-native';
 
 import { useAuth } from '../../provider/AuthProvider';
 import SelectedDrugsButton from '../../utils/headerRight';
@@ -112,7 +105,14 @@ export default function HcpLayout() {
               <FontAwesome name="navicon" size={size} color={color} />
             ),
             tabBarButton: (props) => (
-              <TouchableOpacity {...(props as TouchableOpacityProps)} onPress={toggleModal} />
+              <TouchableOpacity
+                style={props.style}
+                accessibilityRole={props.accessibilityRole}
+                accessibilityState={props.accessibilityState}
+                onPress={() => toggleModal()}
+              >
+                {props.children}
+              </TouchableOpacity>
             ),
           }}
         />

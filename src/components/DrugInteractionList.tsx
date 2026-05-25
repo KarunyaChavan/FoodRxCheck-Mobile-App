@@ -12,7 +12,7 @@ import Colors from '../constant/Colors';
 import { queryKeys } from '../constant/QueryKeys';
 import { fetchDrugInteractions } from '../services/api/interactions';
 import { Interaction } from '../types/database.types';
-import FdaSummarySection from '../components/ui/FdaSummarySection';
+import FdaSummarySection from './ui/FdaSummarySection';
 import parseAndRenderText from '../utils/parsehttp';
 
 interface DrugInteractionListProps {
@@ -39,9 +39,9 @@ const DrugInteractionList: React.FC<DrugInteractionListProps> = ({ tableName }) 
   /**
    * Toggles an interaction card between collapsed and expanded states.
    */
-  const toggleExpansion = (index: number) => {
+  const toggleExpansion = React.useCallback((index: number) => {
     setExpandedItems((prev) => ({ ...prev, [index]: !prev[index] }));
-  };
+  }, []);
 
   // Include counselling tips even when food interactions are 'NA'
   const dataWithCounsellingTips =
@@ -60,58 +60,61 @@ const DrugInteractionList: React.FC<DrugInteractionListProps> = ({ tableName }) 
   /**
    * Renders one interaction row inside the FlatList.
    */
-  const renderInteractionItem = ({ item, index }: { item: Interaction; index: number }) => {
-    const isExpanded = expandedItems[index];
+  const renderInteractionItem = React.useCallback(
+    ({ item, index }: { item: Interaction; index: number }) => {
+      const isExpanded = expandedItems[index];
 
-    return (
-      <View style={styles.card}>
-        {item.isCounsellingTips ? (
-          <>
-            <Text style={styles.bold}>Counselling Tips:</Text>
-            <Text style={styles.cardText}>{item.counselling_tips}</Text>
-          </>
-        ) : (
-          <>
-            <Pressable style={styles.touch} onPress={() => toggleExpansion(index)}>
-              <Text style={styles.cardTitle}>{item.food}</Text>
-              <FontAwesome
-                name="chevron-right"
-                size={15}
-                color={Colors.light.text}
-                style={{ transform: [{ rotate: isExpanded ? '90deg' : '0deg' }] }}
-              />
-            </Pressable>
+      return (
+        <View style={styles.card}>
+          {item.isCounsellingTips ? (
+            <>
+              <Text style={styles.bold}>Counselling Tips:</Text>
+              <Text style={styles.cardText}>{item.counselling_tips}</Text>
+            </>
+          ) : (
+            <>
+              <Pressable style={styles.touch} onPress={() => toggleExpansion(index)}>
+                <Text style={styles.cardTitle}>{item.food}</Text>
+                <FontAwesome
+                  name="chevron-right"
+                  size={15}
+                  color={Colors.light.text}
+                  style={{ transform: [{ rotate: isExpanded ? '90deg' : '0deg' }] }}
+                />
+              </Pressable>
 
-            {isExpanded && (
-              <View style={styles.expandedContent}>
-                {item.mechanism_of_action && (
-                  <Text style={styles.cardText}>
-                    <Text style={styles.bold}>Mechanism:</Text> {item.mechanism_of_action}
-                  </Text>
-                )}
-                {item.severity && (
-                  <Text style={styles.cardText}>
-                    <Text style={styles.bold}>Severity:</Text> {item.severity}
-                  </Text>
-                )}
-                {item.management && (
-                  <Text style={styles.cardText}>
-                    <Text style={styles.bold}>Management:</Text> {item.management}
-                  </Text>
-                )}
-                {item.reference && (
-                  <View>
-                    <Text style={styles.bold}>Reference:</Text>
-                    {parseAndRenderText(item.reference)}
-                  </View>
-                )}
-              </View>
-            )}
-          </>
-        )}
-      </View>
-    );
-  };
+              {isExpanded && (
+                <View style={styles.expandedContent}>
+                  {item.mechanism_of_action && (
+                    <Text style={styles.cardText}>
+                      <Text style={styles.bold}>Mechanism:</Text> {item.mechanism_of_action}
+                    </Text>
+                  )}
+                  {item.severity && (
+                    <Text style={styles.cardText}>
+                      <Text style={styles.bold}>Severity:</Text> {item.severity}
+                    </Text>
+                  )}
+                  {item.management && (
+                    <Text style={styles.cardText}>
+                      <Text style={styles.bold}>Management:</Text> {item.management}
+                    </Text>
+                  )}
+                  {item.reference && (
+                    <View>
+                      <Text style={styles.bold}>Reference:</Text>
+                      {parseAndRenderText(item.reference)}
+                    </View>
+                  )}
+                </View>
+              )}
+            </>
+          )}
+        </View>
+      );
+    },
+    [expandedItems, toggleExpansion],
+  );
 
   return (
     <View style={styles.container}>
@@ -136,6 +139,7 @@ const DrugInteractionList: React.FC<DrugInteractionListProps> = ({ tableName }) 
             ? `${validDrugDetails.length} Food Interaction${validDrugDetails.length !== 1 ? 's' : ''}`
             : 'No Food Drug Interaction Available'}
         </Text>
+
         <FdaSummarySection queryText={name ?? id ?? ''} />
       </View>
 
@@ -143,6 +147,8 @@ const DrugInteractionList: React.FC<DrugInteractionListProps> = ({ tableName }) 
         data={dataWithCounsellingTips}
         keyExtractor={(item, index) => `${item.drug_id}-${item.food}-${index}`}
         renderItem={renderInteractionItem}
+        extraData={expandedItems}
+        initialNumToRender={6}
       />
 
     </View>

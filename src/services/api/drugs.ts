@@ -68,7 +68,7 @@ export const fetchSubClassDrugs = async (subClassId: string | number): Promise<D
   const { data, error } = await supabase
     .from('drugs')
     .select('*')
-    .eq('sub_class_id', subClassId)
+    .eq('subclass_id', subClassId)
     .order('drug_name', { ascending: true });
 
   if (error) {
