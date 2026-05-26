@@ -15,7 +15,7 @@ import { useDrugs } from '../provider/DrugsProvider';
 const SelectedDrugsButton: React.FC = () => {
   const router = useRouter();
   const { selectedDrugs } = useDrugs();
-  const selectedCount = selectedDrugs?.length;
+  const selectedCount = selectedDrugs.length;
 
   return (
     <Pressable onPress={() => router.push('/SelectedDrugs/Selectedrugs')}>
@@ -23,8 +23,7 @@ const SelectedDrugsButton: React.FC = () => {
         <View style={[styles.buttonContainer, pressed && styles.pressed]}>
           <FontAwesome name="list-alt" size={20} color={'#0a7ea4'} />
           <View style={styles.textContainer}>
-            <Text style={styles.text}>Selected</Text>
-            <Text style={styles.text}>Drugs</Text>
+            <Text style={styles.text}>Cabinet</Text>
           </View>
 
           {selectedCount > 0 && (
